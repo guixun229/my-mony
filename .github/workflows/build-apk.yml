@@ -32,6 +32,16 @@ jobs:
       - name: 安装依赖
         run: npm install
 
+      - name: 准备 Web 资源
+        run: |
+          mkdir -p www
+          cp facai.html www/index.html
+          cp manifest.json www/
+          cp service-worker.js www/
+          cp icon-192.png www/
+          cp icon-512.png www/
+          cp apple-touch-icon.png www/
+
       - name: 添加 Android 平台
         run: npx cap add android || true
 
