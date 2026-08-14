@@ -1,0 +1,22 @@
+name: 打包APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 用 pwa-to-apk 打包
+        uses: ducanhphamxd/pwa-to-apk@v1
+        with:
+          manifest: manifest.json
+          output: app.apk
+      
+      - name: 上传 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: 发财
+          path: app.apk
