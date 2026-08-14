@@ -1,0 +1,25 @@
+{
+  "name": "发财 - 像素记账",
+  "short_name": "发财",
+  "description": "简约像素风格记账应用，记录收入支出，管理资产",
+  "start_url": "./facai.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e0e0e0",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

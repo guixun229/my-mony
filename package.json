@@ -1,0 +1,17 @@
+{
+  "name": "facai-app",
+  "version": "2.0.0",
+  "description": "发财 - 像素风格记账应用",
+  "scripts": {
+    "build": "echo 'Static web app, no build needed'",
+    "sync": "npx cap sync android",
+    "open:android": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/core": "^6.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.0"
+  }
+}

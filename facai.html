@@ -1,0 +1,2713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>发财 - 像素记账</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="发财">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="./icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'Zpix';
+      src: url('https://cdn.jsdelivr.net/gh/SolidZORO/zpix-font/dist/Zpix.woff2') format('woff2'),
+           url('https://cdn.jsdelivr.net/gh/SolidZORO/zpix-font/dist/Zpix.woff') format('woff'),
+           url('https://cdn.jsdelivr.net/gh/SolidZORO/zpix-font/dist/Zpix.ttf') format('truetype');
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #e0e0e0;
+      --card-bg: #ffffff;
+      --text: #1a1a2e;
+      --text-light: #666;
+      --border: #1a1a2e;
+      --income: #2d6a4f;
+      --income-bg: #d8f3dc;
+      --expense: #9d0208;
+      --expense-bg: #ffe5e5;
+      --accent: #0353a4;
+      --yellow: #ffd60a;
+      --salary: #b8860b;
+      --salary-bg: #fff8dc;
+      --font-pixel: 'Press Start 2P', 'Zpix', monospace;
+      --font-text: 'Zpix', 'DotGothic16', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-text);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      background-image:
+        linear-gradient(rgba(26,26,46,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,26,46,0.03) 1px, transparent 1px);
+      background-size: 4px 4px;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--bg);
+      position: relative;
+    }
+
+    /* Views */
+    .view {
+      display: none;
+      padding: 0 16px 32px;
+      min-height: 100vh;
+    }
+    .view.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0 16px;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 50;
+    }
+
+    .app-header h1 {
+      font-family: var(--font-text);
+      font-size: 28px;
+      font-weight: normal;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .back-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      font-family: var(--font-text);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      padding: 0;
+    }
+
+    .back-btn:active {
+      transform: translate(2px, 2px);
+    }
+
+    .title-center {
+      font-size: 20px;
+      letter-spacing: 2px;
+    }
+
+    /* Menu */
+    .menu-wrapper { position: relative; }
+
+    .settings-wrapper { position: relative; display: inline-block; }
+
+    .settings-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .settings-btn:active { transform: translate(2px, 2px); }
+
+    .settings-dropdown {
+      top: 42px;
+      left: 0;
+    }
+
+    .update-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #ff0000;
+      border-radius: 50%;
+      margin-left: auto;
+    }
+
+    .menu-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      padding: 0;
+    }
+
+    .menu-btn span {
+      display: block;
+      width: 16px;
+      height: 2px;
+      background: var(--border);
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 42px;
+      right: 0;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      min-width: 130px;
+      z-index: 100;
+      box-shadow: 4px 4px 0 rgba(26,26,46,0.15);
+    }
+
+    .dropdown a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: var(--text);
+      border-bottom: 2px solid #eee;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .dropdown a:last-child { border-bottom: none; }
+    .dropdown a:hover { background: #f5f5f5; }
+    .hidden { display: none !important; }
+
+    /* Balance summary */
+    .balance-summary {
+      text-align: center;
+      padding: 12px 0 20px;
+    }
+
+    .balance-summary .label {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--text-light);
+      margin-bottom: 6px;
+    }
+
+    .balance-summary .amount {
+      font-family: var(--font-pixel);
+      font-size: 18px;
+    }
+
+    .balance-summary .amount.positive { color: var(--income); }
+    .balance-summary .amount.negative { color: var(--expense); }
+
+    /* Balance boxes */
+    .balance-box {
+      border: 3px solid var(--border);
+      padding: 20px;
+      margin-bottom: 16px;
+      background: var(--card-bg);
+      cursor: pointer;
+      position: relative;
+      box-shadow: 4px 4px 0 var(--border);
+      transition: all 0.08s;
+    }
+
+    .balance-box:active {
+      transform: translate(4px, 4px);
+      box-shadow: 0 0 0 var(--border);
+    }
+
+    .box-label {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .box-amount {
+      font-family: var(--font-pixel);
+      font-size: 22px;
+    }
+
+    .box-sub {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-top: 8px;
+    }
+
+    .balance-box.income { border-color: var(--income); box-shadow: 4px 4px 0 var(--income); }
+    .balance-box.income .box-label { color: var(--income); }
+    .balance-box.income .box-amount { color: var(--income); }
+
+    .balance-box.expense { border-color: var(--expense); box-shadow: 4px 4px 0 var(--expense); }
+    .balance-box.expense .box-label { color: var(--expense); }
+    .balance-box.expense .box-amount { color: var(--expense); }
+
+    /* Salary box - smaller */
+    .salary-box {
+      border: 2px solid var(--salary);
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      background: var(--salary-bg);
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--salary);
+      transition: all 0.08s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .salary-box:active {
+      transform: translate(3px, 3px);
+      box-shadow: 0 0 0 var(--salary);
+    }
+
+    .salary-box-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .salary-box-label {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--salary);
+    }
+
+    .salary-box-sub {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+
+    .salary-history-link {
+      font-size: 13px;
+      color: var(--expense);
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 4px 8px;
+    }
+
+    .salary-history-link:active { opacity: 0.6; }
+
+    /* Pixel coin icon */
+    .pixel-coin {
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    /* Form */
+    .type-banner {
+      text-align: center;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 3px solid var(--border);
+      font-family: var(--font-pixel);
+      font-size: 14px;
+    }
+
+    .type-banner.income {
+      background: var(--income-bg);
+      color: var(--income);
+      border-color: var(--income);
+    }
+
+    .type-banner.expense {
+      background: var(--expense-bg);
+      color: var(--expense);
+      border-color: var(--expense);
+    }
+
+    .type-banner.salary {
+      background: var(--salary-bg);
+      color: var(--salary);
+      border-color: var(--salary);
+    }
+
+    .form-group { margin-bottom: 20px; }
+
+    .form-group label {
+      display: block;
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      margin-bottom: 8px;
+      color: var(--text-light);
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select {
+      width: 100%;
+      padding: 14px 12px;
+      border: 2px solid var(--border);
+      font-family: var(--font-text);
+      font-size: 18px;
+      background: var(--card-bg);
+      outline: none;
+      color: var(--text);
+    }
+
+    .form-group input[type="date"] {
+      font-family: var(--font-text);
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    .amount-input-wrapper {
+      position: relative;
+    }
+
+    .amount-input-wrapper::before {
+      content: '¥';
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--font-pixel);
+      font-size: 16px;
+      color: var(--text);
+      z-index: 1;
+    }
+
+    .amount-input-wrapper input {
+      padding-left: 36px !important;
+      font-family: var(--font-pixel);
+      font-size: 20px;
+    }
+
+    /* Account selector */
+    .account-selector {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .account-option {
+      flex: 1;
+      min-width: 80px;
+      padding: 14px 8px;
+      border: 2px solid var(--border);
+      background: var(--card-bg);
+      cursor: pointer;
+      text-align: center;
+      font-family: var(--font-text);
+      font-size: 15px;
+      transition: all 0.08s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .account-option:active { transform: translate(2px, 2px); }
+
+    .account-option.selected {
+      background: var(--text);
+      color: #fff;
+    }
+
+    .account-option.selected .acc-icon { filter: invert(1); }
+
+    /* Date display */
+    .date-display {
+      padding: 14px 12px;
+      border: 2px solid var(--border);
+      background: #f5f5f5;
+      font-family: var(--font-text);
+      font-size: 18px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: 3px solid var(--border);
+      background: var(--card-bg);
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 var(--border);
+      transition: all 0.08s;
+      color: var(--text);
+    }
+
+    .btn:active {
+      transform: translate(4px, 4px);
+      box-shadow: 0 0 0 var(--border);
+    }
+
+    .btn-income {
+      background: var(--income);
+      color: #fff;
+      border-color: var(--income);
+      box-shadow: 4px 4px 0 #1a3a2a;
+    }
+
+    .btn-expense {
+      background: var(--expense);
+      color: #fff;
+      border-color: var(--expense);
+      box-shadow: 4px 4px 0 #5a0104;
+    }
+
+    .btn-salary {
+      background: var(--salary);
+      color: #fff;
+      border-color: var(--salary);
+      box-shadow: 4px 4px 0 #6b4e00;
+    }
+
+    .btn-small {
+      padding: 10px 16px;
+      font-size: 10px;
+      width: auto;
+      box-shadow: 3px 3px 0 var(--border);
+    }
+
+    .btn-add {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 3px 3px 0 #021f3d;
+      margin-bottom: 12px;
+    }
+
+    .btn-transfer {
+      background: var(--yellow);
+      color: var(--text);
+      border-color: #c4a800;
+      box-shadow: 3px 3px 0 #c4a800;
+      margin-bottom: 16px;
+    }
+
+    /* Transfer modal */
+    .transfer-arrow {
+      text-align: center;
+      font-size: 24px;
+      color: var(--text-light);
+      margin: 4px 0;
+    }
+
+    .modal select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid var(--border);
+      font-family: var(--font-text);
+      font-size: 16px;
+      background: var(--card-bg);
+      color: var(--text);
+      outline: none;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: flex-end;
+    }
+
+    .filter-item {
+      flex: 1;
+    }
+
+    .filter-item label {
+      display: block;
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      margin-bottom: 6px;
+      color: var(--text-light);
+    }
+
+    .filter-item select {
+      width: 100%;
+      padding: 10px 8px;
+      border: 2px solid var(--border);
+      font-family: var(--font-text);
+      font-size: 16px;
+      background: var(--card-bg);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    /* Details */
+    .year-group { margin-bottom: 20px; }
+
+    .year-header {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      padding: 10px 12px;
+      background: var(--text);
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .month-group { margin-bottom: 16px; margin-left: 8px; }
+
+    .month-header {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      padding: 8px 10px;
+      background: var(--accent);
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .day-group { margin-bottom: 12px; margin-left: 8px; }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      padding: 6px 4px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 6px;
+    }
+
+    .day-header .day-num { font-weight: bold; }
+
+    .day-header .day-summary { font-size: 13px; }
+
+    .record-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      margin-bottom: 4px;
+      background: var(--card-bg);
+    }
+
+    .record-icon {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      font-family: var(--font-pixel);
+    }
+
+    .record-icon.income { background: var(--income-bg); color: var(--income); border-color: var(--income); }
+    .record-icon.expense { background: var(--expense-bg); color: var(--expense); border-color: var(--expense); }
+
+    .record-info { flex: 1; min-width: 0; }
+
+    .record-note {
+      font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .record-meta {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .record-amount {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .record-amount.income { color: var(--income); }
+    .record-amount.expense { color: var(--expense); }
+
+    .delete-btn {
+      background: none;
+      border: 1px solid var(--text-light);
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-light);
+      padding: 2px 8px;
+      font-family: var(--font-text);
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover { color: var(--expense); border-color: var(--expense); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* Chart */
+    .chart-stats {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      flex: 1;
+      border: 2px solid var(--border);
+      padding: 12px;
+      text-align: center;
+      background: var(--card-bg);
+    }
+
+    .stat-box.income { border-color: var(--income); }
+    .stat-box.income .stat-value { color: var(--income); }
+    .stat-box.expense { border-color: var(--expense); }
+    .stat-box.expense .stat-value { color: var(--expense); }
+
+    .stat-label {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      margin-bottom: 6px;
+      color: var(--text-light);
+    }
+
+    .stat-value {
+      font-family: var(--font-pixel);
+      font-size: 13px;
+    }
+
+    .chart-container {
+      border: 3px solid var(--border);
+      background: var(--card-bg);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 4px 4px 0 var(--border);
+      height: 340px;
+      position: relative;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--border);
+    }
+
+    .legend-dot.income { background: var(--income); }
+    .legend-dot.expense { background: var(--expense); }
+
+    /* Assets */
+    .assets-total {
+      border: 3px solid var(--border);
+      background: var(--text);
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 4px 4px 0 var(--border);
+    }
+
+    .assets-total .label {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--yellow);
+      margin-bottom: 8px;
+    }
+
+    .assets-total .amount {
+      font-family: var(--font-pixel);
+      font-size: 20px;
+      color: var(--yellow);
+    }
+
+    .asset-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 12px;
+      border: 2px solid var(--border);
+      margin-bottom: 8px;
+      background: var(--card-bg);
+    }
+
+    .asset-icon-box {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: var(--font-pixel);
+      font-size: 10px;
+    }
+
+    .asset-info { flex: 1; min-width: 0; }
+
+    .asset-name {
+      font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .asset-meta {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .asset-amount {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--income);
+      white-space: nowrap;
+    }
+
+    .asset-amount.negative {
+      color: var(--expense);
+    }
+
+    .asset-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 8px;
+      font-family: var(--font-text);
+      color: var(--text);
+    }
+
+    .icon-btn:active { transform: translate(2px, 2px); }
+    .icon-btn.danger { color: var(--expense); border-color: var(--expense); }
+
+    /* Asset type selector */
+    .type-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .type-option {
+      flex: 1;
+      min-width: 70px;
+      padding: 10px 6px;
+      border: 2px solid var(--border);
+      background: var(--card-bg);
+      cursor: pointer;
+      text-align: center;
+      font-family: var(--font-text);
+      font-size: 14px;
+    }
+
+    .type-option:active { transform: translate(2px, 2px); }
+    .type-option.selected { background: var(--text); color: #fff; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: #fff;
+      padding: 12px 24px;
+      border: 2px solid var(--border);
+      font-family: var(--font-text);
+      font-size: 16px;
+      z-index: 1000;
+      animation: toastIn 0.3s ease;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .toast.fadeOut {
+      animation: toastOut 0.3s ease forwards;
+    }
+
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    }
+
+    /* Confirm modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(26,26,46,0.5);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .modal {
+      background: var(--bg);
+      border: 3px solid var(--border);
+      box-shadow: 6px 6px 0 var(--border);
+      padding: 24px;
+      max-width: 320px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal p {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid var(--border);
+      font-family: var(--font-text);
+      font-size: 16px;
+      cursor: pointer;
+      background: var(--card-bg);
+    }
+
+    .modal-btn:active { transform: translate(2px, 2px); }
+    .modal-btn.confirm { background: var(--expense); color: #fff; }
+    .modal-btn.save { background: var(--income); color: #fff; }
+
+    .modal-form .form-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .spacer { width: 36px; flex-shrink: 0; }
+
+    /* Salary history */
+    .salary-history-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 12px;
+      border: 2px solid var(--salary);
+      margin-bottom: 8px;
+      background: var(--salary-bg);
+    }
+
+    .salary-history-icon {
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--salary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--salary);
+      flex-shrink: 0;
+    }
+
+    .salary-history-info { flex: 1; }
+
+    .salary-history-date {
+      font-size: 16px;
+    }
+
+    .salary-history-meta {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    .salary-history-amount {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--salary);
+    }
+
+    .section-title {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      margin: 16px 0 12px;
+      color: var(--text);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ========== Main View ========== -->
+    <div id="main-view" class="view active">
+      <div class="app-header">
+        <h1>
+          <div class="settings-wrapper">
+            <button class="settings-btn" id="settings-btn">
+              <svg class="pixel-coin" viewBox="0 0 12 12" shape-rendering="crispEdges">
+                <rect x="5" y="0" width="2" height="1" fill="#1a1a2e"/>
+                <rect x="5" y="1" width="2" height="1" fill="#1a1a2e"/>
+                <rect x="3" y="2" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="4" y="2" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="7" y="2" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="8" y="2" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="2" y="3" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="3" y="3" width="2" height="1" fill="#1a1a2e"/>
+                <rect x="7" y="3" width="2" height="1" fill="#1a1a2e"/>
+                <rect x="9" y="3" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="1" y="4" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="2" y="4" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="9" y="4" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="10" y="4" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="1" y="5" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="2" y="5" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="4" y="5" width="4" height="2" fill="#1a1a2e"/>
+                <rect x="9" y="5" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="10" y="5" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="1" y="6" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="2" y="6" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="9" y="6" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="10" y="6" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="1" y="7" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="2" y="7" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="9" y="7" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="10" y="7" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="2" y="8" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="3" y="8" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="8" y="8" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="9" y="8" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="3" y="9" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="4" y="9" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="7" y="9" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="8" y="9" width="1" height="1" fill="#1a1a2e"/>
+                <rect x="5" y="10" width="2" height="1" fill="#1a1a2e"/>
+                <rect x="5" y="11" width="2" height="1" fill="#1a1a2e"/>
+              </svg>
+            </button>
+            <div class="dropdown settings-dropdown hidden" id="settings-dropdown">
+              <a onclick="checkUpdate()">
+                <span>更新</span>
+                <span class="update-dot hidden" id="update-dot"></span>
+              </a>
+              <a onclick="exportData()">数据导出</a>
+            </div>
+          </div>
+          发财
+        </h1>
+        <div class="menu-wrapper">
+          <button class="menu-btn" id="menu-btn">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="dropdown hidden" id="menu-dropdown">
+            <a onclick="goToView('details-view')">详情</a>
+            <a onclick="goToView('chart-view')">图表</a>
+            <a onclick="goToView('assets-view')">资产</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="balance-summary">
+        <div class="label">本月结余</div>
+        <div class="amount" id="net-balance">¥0.00</div>
+      </div>
+
+      <div class="balance-box income" onclick="openAddForm('income')">
+        <div class="box-label">
+          <svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges">
+            <rect x="3" y="0" width="2" height="6" fill="currentColor"/>
+            <rect x="1" y="2" width="2" height="1" fill="currentColor"/>
+            <rect x="5" y="2" width="2" height="1" fill="currentColor"/>
+            <rect x="2" y="6" width="4" height="1" fill="currentColor"/>
+            <rect x="3" y="7" width="2" height="1" fill="currentColor"/>
+          </svg>
+          收入
+        </div>
+        <div class="box-amount" id="income-total">¥0.00</div>
+        <div class="box-sub" id="income-sub">本月暂无收入</div>
+      </div>
+
+      <div class="balance-box expense" onclick="openAddForm('expense')">
+        <div class="box-label">
+          <svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges">
+            <rect x="3" y="0" width="2" height="8" fill="currentColor"/>
+            <rect x="2" y="6" width="4" height="1" fill="currentColor"/>
+            <rect x="1" y="5" width="2" height="1" fill="currentColor"/>
+            <rect x="5" y="5" width="2" height="1" fill="currentColor"/>
+          </svg>
+          支出
+        </div>
+        <div class="box-amount" id="expense-total">¥0.00</div>
+        <div class="box-sub" id="expense-sub">本月暂无支出</div>
+      </div>
+
+      <div class="salary-box" onclick="openSalaryForm(event)">
+        <div class="salary-box-left">
+          <svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges">
+            <rect x="4" y="1" width="2" height="1" fill="#b8860b"/>
+            <rect x="3" y="2" width="4" height="1" fill="#b8860b"/>
+            <rect x="2" y="3" width="6" height="4" fill="#b8860b"/>
+            <rect x="3" y="7" width="4" height="1" fill="#b8860b"/>
+            <rect x="4" y="8" width="2" height="1" fill="#b8860b"/>
+            <rect x="4" y="4" width="2" height="1" fill="#fff8dc"/>
+            <rect x="4" y="5" width="2" height="1" fill="#fff8dc"/>
+          </svg>
+          <div>
+            <div class="salary-box-label">发薪</div>
+            <div class="salary-box-sub" id="salary-sub">点击记录发薪</div>
+          </div>
+        </div>
+        <span class="salary-history-link" onclick="event.stopPropagation(); goToView('salary-history-view')">历史记录</span>
+      </div>
+    </div>
+
+    <!-- ========== Add Record View ========== -->
+    <div id="add-view" class="view">
+      <div class="app-header">
+        <button class="back-btn" onclick="showView('main-view')">←</button>
+        <span class="title-center" id="add-view-title">记一笔</span>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="type-banner" id="type-banner">收入</div>
+
+      <div class="form-group">
+        <label>金额</label>
+        <div class="amount-input-wrapper">
+          <input type="number" id="amount-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>备注</label>
+        <input type="text" id="note-input" placeholder="写点备注..." maxlength="50" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label>账号</label>
+        <div class="account-selector" id="account-selector">
+          <div class="account-option selected" data-account="bank" onclick="selectAccount(this)">
+            <svg width="16" height="16" viewBox="0 0 10 10" shape-rendering="crispEdges" class="acc-icon">
+              <rect x="1" y="3" width="8" height="1" fill="currentColor"/>
+              <rect x="0" y="4" width="10" height="1" fill="currentColor"/>
+              <rect x="1" y="5" width="8" height="3" fill="none" stroke="currentColor" stroke-width="1"/>
+              <rect x="2" y="6" width="1" height="1" fill="currentColor"/>
+              <rect x="2" y="7" width="1" height="1" fill="currentColor"/>
+            </svg>
+            <span id="bank-label">银行卡</span>
+          </div>
+          <div class="account-option" data-account="wechat" onclick="selectAccount(this)">
+            <svg width="16" height="16" viewBox="0 0 10 10" shape-rendering="crispEdges" class="acc-icon">
+              <rect x="1" y="2" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1"/>
+              <rect x="3" y="4" width="1" height="1" fill="currentColor"/>
+              <rect x="5" y="4" width="1" height="1" fill="currentColor"/>
+              <rect x="2" y="8" width="3" height="1" fill="currentColor"/>
+            </svg>
+            微信
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>日期（自动当天）</label>
+        <div class="date-display" id="date-display">
+          <svg width="16" height="16" viewBox="0 0 10 10" shape-rendering="crispEdges">
+            <rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1"/>
+            <rect x="1" y="1" width="8" height="2" fill="currentColor"/>
+            <rect x="3" y="0" width="1" height="2" fill="currentColor"/>
+            <rect x="6" y="0" width="1" height="2" fill="currentColor"/>
+            <rect x="3" y="4" width="1" height="1" fill="#fff"/>
+            <rect x="5" y="4" width="1" height="1" fill="#fff"/>
+            <rect x="7" y="4" width="1" height="1" fill="#fff"/>
+            <rect x="3" y="6" width="1" height="1" fill="#fff"/>
+            <rect x="5" y="6" width="1" height="1" fill="#fff"/>
+          </svg>
+          <span id="date-text">2026-08-12</span>
+        </div>
+      </div>
+
+      <button class="btn btn-income" id="save-btn" onclick="saveRecord()">保存</button>
+    </div>
+
+    <!-- ========== Salary Form View ========== -->
+    <div id="salary-view" class="view">
+      <div class="app-header">
+        <button class="back-btn" onclick="showView('main-view')">←</button>
+        <span class="title-center">发薪</span>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="type-banner salary">发薪记录</div>
+
+      <div class="form-group">
+        <label>发薪日期</label>
+        <input type="date" id="salary-date-input">
+      </div>
+
+      <div class="form-group">
+        <label>发薪金额</label>
+        <div class="amount-input-wrapper">
+          <input type="number" id="salary-amount-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>存入账号</label>
+        <div class="account-selector" id="salary-account-selector">
+          <div class="account-option selected" data-account="bank" onclick="selectSalaryAccount(this)">
+            <svg width="16" height="16" viewBox="0 0 10 10" shape-rendering="crispEdges" class="acc-icon">
+              <rect x="1" y="3" width="8" height="1" fill="currentColor"/>
+              <rect x="0" y="4" width="10" height="1" fill="currentColor"/>
+              <rect x="1" y="5" width="8" height="3" fill="none" stroke="currentColor" stroke-width="1"/>
+              <rect x="2" y="6" width="1" height="1" fill="currentColor"/>
+              <rect x="2" y="7" width="1" height="1" fill="currentColor"/>
+            </svg>
+            <span id="salary-bank-label">银行卡</span>
+          </div>
+          <div class="account-option" data-account="wechat" onclick="selectSalaryAccount(this)">
+            <svg width="16" height="16" viewBox="0 0 10 10" shape-rendering="crispEdges" class="acc-icon">
+              <rect x="1" y="2" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1"/>
+              <rect x="3" y="4" width="1" height="1" fill="currentColor"/>
+              <rect x="5" y="4" width="1" height="1" fill="currentColor"/>
+              <rect x="2" y="8" width="3" height="1" fill="currentColor"/>
+            </svg>
+            微信
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-salary" onclick="saveSalary()">保存发薪</button>
+    </div>
+
+    <!-- ========== Salary History View ========== -->
+    <div id="salary-history-view" class="view">
+      <div class="app-header">
+        <button class="back-btn" onclick="showView('main-view')">←</button>
+        <span class="title-center">发薪历史</span>
+        <div class="spacer"></div>
+      </div>
+      <div id="salary-history-content"></div>
+    </div>
+
+    <!-- ========== Details View ========== -->
+    <div id="details-view" class="view">
+      <div class="app-header">
+        <button class="back-btn" onclick="showView('main-view')">←</button>
+        <span class="title-center">详情</span>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-item">
+          <label>年份</label>
+          <select id="details-year-select" onchange="renderDetails()"></select>
+        </div>
+        <div class="filter-item">
+          <label>月份</label>
+          <select id="details-month-select" onchange="renderDetails()"></select>
+        </div>
+      </div>
+
+      <div id="details-content"></div>
+    </div>
+
+    <!-- ========== Chart View ========== -->
+    <div id="chart-view" class="view">
+      <div class="app-header">
+        <button class="back-btn" onclick="showView('main-view')">←</button>
+        <span class="title-center">图表</span>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-item">
+          <label>年份</label>
+          <select id="chart-year-select" onchange="renderChart()"></select>
+        </div>
+        <div class="filter-item">
+          <label>月份</label>
+          <select id="chart-month-select" onchange="renderChart()"></select>
+        </div>
+      </div>
+
+      <div class="chart-stats">
+        <div class="stat-box income">
+          <div class="stat-label" id="chart-income-label">月收入</div>
+          <div class="stat-value" id="chart-income-total">¥0</div>
+        </div>
+        <div class="stat-box expense">
+          <div class="stat-label" id="chart-expense-label">月支出</div>
+          <div class="stat-value" id="chart-expense-total">¥0</div>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-legend">
+          <div class="legend-item">
+            <div class="legend-dot income"></div>
+            <span>收入</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot expense"></div>
+            <span>支出</span>
+          </div>
+        </div>
+        <canvas id="line-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- ========== Assets View ========== -->
+    <div id="assets-view" class="view">
+      <div class="app-header">
+        <button class="back-btn" onclick="showView('main-view')">←</button>
+        <span class="title-center">资产</span>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="assets-total">
+        <div class="label">总资产</div>
+        <div class="amount" id="assets-total">¥0.00</div>
+      </div>
+
+      <button class="btn btn-add" onclick="openAssetModal()">+ 添加资产</button>
+      <button class="btn btn-transfer" onclick="openTransferModal()">转账</button>
+
+      <div id="assets-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== Data ====================
+    // Version check: clear old data on version upgrade
+    const DATA_VERSION = 'v2_clean';
+    if (localStorage.getItem('facai_data_version') !== DATA_VERSION) {
+      localStorage.removeItem('facai_records');
+      localStorage.removeItem('facai_assets');
+      localStorage.removeItem('facai_salary');
+      localStorage.removeItem('facai_salary_last_date');
+      localStorage.setItem('facai_data_version', DATA_VERSION);
+    }
+
+    let records = JSON.parse(localStorage.getItem('facai_records') || '[]');
+    let assets = JSON.parse(localStorage.getItem('facai_assets') || '[]');
+    let salaryHistory = JSON.parse(localStorage.getItem('facai_salary') || '[]');
+    let salaryLastDate = localStorage.getItem('facai_salary_last_date') || '';
+    let currentType = 'income';
+    let currentAccount = 'bank';
+    let salaryAccount = 'bank';
+    let chartInstance = null;
+
+    // Initialize on first load - empty records, zero-amount assets for user to edit
+    if (records.length === 0 && assets.length === 0 && salaryHistory.length === 0) {
+      saveRecords();
+      saveSalaryData();
+
+      // Default assets with 0 amounts
+      assets = [
+        { id: 1, name: '工商银行储蓄卡', type: 'bank', amount: 0 },
+        { id: 2, name: '招商银行信用卡', type: 'bank', amount: 0 },
+        { id: 3, name: '微信钱包', type: 'wechat', amount: 0 },
+        { id: 4, name: '支付宝', type: 'alipay', amount: 0 }
+      ];
+      saveAssets();
+    }
+
+    // ==================== Utilities ====================
+    function formatDateStr(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatCurrency(amount) {
+      return '¥' + Number(amount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function saveRecords() {
+      localStorage.setItem('facai_records', JSON.stringify(records));
+    }
+
+    function saveAssets() {
+      localStorage.setItem('facai_assets', JSON.stringify(assets));
+    }
+
+    function saveSalaryData() {
+      localStorage.setItem('facai_salary', JSON.stringify(salaryHistory));
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function getAccountText(account) {
+      if (account === 'bank') return '银行卡';
+      if (account === 'wechat') return '微信';
+      if (account === 'alipay') return '支付宝';
+      if (account === 'cash') return '现金';
+      // If it's a specific bank card name, return it directly
+      return account;
+    }
+
+    // ==================== View Management ====================
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      if (viewId === 'main-view') updateMainView();
+      if (viewId === 'details-view') { initDetailsFilters(); renderDetails(); }
+      if (viewId === 'chart-view') { initChartFilters(); renderChart(); }
+      if (viewId === 'assets-view') renderAssets();
+      if (viewId === 'salary-history-view') renderSalaryHistory();
+      window.scrollTo(0, 0);
+    }
+
+    function goToView(viewId) {
+      closeMenu();
+      closeSettings();
+      showView(viewId);
+    }
+
+    // ==================== Menu ====================
+    document.getElementById('menu-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeSettings();
+      document.getElementById('menu-dropdown').classList.toggle('hidden');
+    });
+
+    document.getElementById('settings-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeMenu();
+      document.getElementById('settings-dropdown').classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', function() {
+      closeMenu();
+      closeSettings();
+    });
+
+    document.getElementById('menu-dropdown').addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+
+    document.getElementById('settings-dropdown').addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+
+    function closeMenu() {
+      document.getElementById('menu-dropdown').classList.add('hidden');
+    }
+
+    function closeSettings() {
+      const sd = document.getElementById('settings-dropdown');
+      if (sd) sd.classList.add('hidden');
+    }
+
+    // ==================== Update Check ====================
+    const APP_VERSION = '2.0.0';
+    const LATEST_VERSION = '2.0.0'; // Simulated: same = no update needed
+
+    function checkUpdate() {
+      closeSettings();
+
+      // Trigger service worker update check
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(function(reg) {
+          if (reg) reg.update();
+        });
+      }
+
+      const isNewVersion = LATEST_VERSION !== APP_VERSION;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+
+      if (isNewVersion) {
+        overlay.innerHTML = `
+          <div class="modal">
+            <p style="font-family:var(--font-pixel);font-size:12px;margin-bottom:12px;color:var(--accent)">发现新版本</p>
+            <p style="font-size:15px;margin-bottom:8px">当前版本：v${APP_VERSION}</p>
+            <p style="font-size:15px;margin-bottom:16px">最新版本：v${LATEST_VERSION}</p>
+            <div class="modal-buttons">
+              <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">稍后再说</button>
+              <button class="modal-btn save" onclick="doUpdate(this)">立即更新</button>
+            </div>
+          </div>
+        `;
+      } else {
+        overlay.innerHTML = `
+          <div class="modal">
+            <p style="font-size:18px;margin-bottom:12px">当前已是最新版本</p>
+            <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">版本 v${APP_VERSION}</p>
+            <div class="modal-buttons">
+              <button class="modal-btn save" onclick="this.closest('.modal-overlay').remove()">确定</button>
+            </div>
+          </div>
+        `;
+      }
+
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+    }
+
+    function doUpdate(btn) {
+      btn.textContent = '更新中...';
+      btn.disabled = true;
+      setTimeout(function() {
+        btn.closest('.modal-overlay').remove();
+        const successOverlay = document.createElement('div');
+        successOverlay.className = 'modal-overlay';
+        successOverlay.innerHTML = `
+          <div class="modal">
+            <p style="color:var(--income);font-size:18px;margin-bottom:12px">更新成功！</p>
+            <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">已更新至 v${LATEST_VERSION}</p>
+            <div class="modal-buttons">
+              <button class="modal-btn save" onclick="this.closest('.modal-overlay').remove()">确定</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(successOverlay);
+      }, 1500);
+    }
+
+    // ==================== Data Export ====================
+    function exportData() {
+      closeSettings();
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p style="font-family:var(--font-pixel);font-size:12px;margin-bottom:16px">数据导出</p>
+          <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">选择导出格式</p>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn save" onclick="exportToXLS(this)">XLS 导出</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+    }
+
+    function exportToXLS(btn) {
+      // Build XLS (Excel compatible HTML table) with multiple sheets via separate tables
+      let html = '';
+
+      // Sheet 1: Records
+      html += '<table border="1">';
+      html += '<tr style="background-color:#0353a4;color:#fff;font-weight:bold"><td colspan="5" style="font-size:14px;padding:8px">记账记录</td></tr>';
+      html += '<tr style="background-color:#e0e0e0;font-weight:bold"><td>日期</td><td>类型</td><td>金额</td><td>备注</td><td>账号</td></tr>';
+      records.forEach(function(r) {
+        html += '<tr>';
+        html += '<td style="padding:4px">' + escapeHtml(r.date) + '</td>';
+        html += '<td style="padding:4px">' + (r.type === 'income' ? '收入' : '支出') + '</td>';
+        html += '<td style="padding:4px;text-align:right">' + r.amount.toFixed(2) + '</td>';
+        html += '<td style="padding:4px">' + escapeHtml(r.note) + '</td>';
+        html += '<td style="padding:4px">' + escapeHtml(getAccountText(r.account)) + '</td>';
+        html += '</tr>';
+      });
+      html += '</table>';
+
+      // Spacer between tables
+      html += '<br><br>';
+
+      // Sheet 2: Assets
+      html += '<table border="1">';
+      html += '<tr style="background-color:#0353a4;color:#fff;font-weight:bold"><td colspan="4" style="font-size:14px;padding:8px">资产</td></tr>';
+      html += '<tr style="background-color:#e0e0e0;font-weight:bold"><td>名称</td><td>类型</td><td>金额</td><td>备注</td></tr>';
+      assets.forEach(function(a) {
+        html += '<tr>';
+        html += '<td style="padding:4px">' + escapeHtml(a.name) + '</td>';
+        html += '<td style="padding:4px">' + escapeHtml(getAssetTypeLabel(a.type)) + '</td>';
+        html += '<td style="padding:4px;text-align:right">' + a.amount.toFixed(2) + '</td>';
+        html += '<td style="padding:4px">' + (a.amount < 0 ? '负债' : '资产') + '</td>';
+        html += '</tr>';
+      });
+      const totalAssets = assets.reduce(function(s, a) { return s + a.amount; }, 0);
+      html += '<tr style="font-weight:bold;background-color:#f0f0f0"><td colspan="2" style="padding:4px">总计</td><td style="padding:4px;text-align:right">' + totalAssets.toFixed(2) + '</td><td></td></tr>';
+      html += '</table>';
+
+      html += '<br><br>';
+
+      // Sheet 3: Salary History
+      html += '<table border="1">';
+      html += '<tr style="background-color:#0353a4;color:#fff;font-weight:bold"><td colspan="3" style="font-size:14px;padding:8px">发薪记录</td></tr>';
+      html += '<tr style="background-color:#e0e0e0;font-weight:bold"><td>日期</td><td>金额</td><td>账号</td></tr>';
+      salaryHistory.forEach(function(s) {
+        html += '<tr>';
+        html += '<td style="padding:4px">' + escapeHtml(s.date) + '</td>';
+        html += '<td style="padding:4px;text-align:right">' + s.amount.toFixed(2) + '</td>';
+        html += '<td style="padding:4px">' + escapeHtml(getAccountText(s.account)) + '</td>';
+        html += '</tr>';
+      });
+      html += '</table>';
+
+      // Generate XLS file
+      const xlsContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>' + html + '</body></html>';
+      const blob = new Blob(['\ufeff' + xlsContent], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '发财_数据导出_' + formatDateStr(new Date()) + '.xls';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      btn.closest('.modal-overlay').remove();
+      showToast('数据已导出');
+    }
+
+    // ==================== Add Record ====================
+    function openAddForm(type) {
+      currentType = type;
+      currentAccount = 'bank';
+
+      const banner = document.getElementById('type-banner');
+      const title = document.getElementById('add-view-title');
+      const saveBtn = document.getElementById('save-btn');
+
+      if (type === 'income') {
+        banner.textContent = '收入';
+        banner.className = 'type-banner income';
+        title.textContent = '记收入';
+        saveBtn.className = 'btn btn-income';
+        saveBtn.textContent = '保存收入';
+      } else {
+        banner.textContent = '支出';
+        banner.className = 'type-banner expense';
+        title.textContent = '记支出';
+        saveBtn.className = 'btn btn-expense';
+        saveBtn.textContent = '保存支出';
+      }
+
+      document.getElementById('amount-input').value = '';
+      document.getElementById('note-input').value = '';
+      document.getElementById('date-text').textContent = formatDateStr(new Date());
+
+      document.querySelectorAll('#account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
+      document.querySelector('#account-selector .account-option[data-account="bank"]').classList.add('selected');
+      document.getElementById('bank-label').textContent = '银行卡';
+      currentAccount = 'bank';
+
+      showView('add-view');
+      setTimeout(() => document.getElementById('amount-input').focus(), 200);
+    }
+
+    function selectAccount(el) {
+      const account = el.dataset.account;
+      if (account === 'bank') {
+        openBankCardPicker(el);
+        return;
+      }
+      document.querySelectorAll('#account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+      currentAccount = account;
+    }
+
+    function openBankCardPicker(clickedEl) {
+      const bankAssets = assets.filter(a => a.type === 'bank');
+      if (bankAssets.length === 0) {
+        showToast('请先在资产页添加银行卡');
+        return;
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <p style="font-family:var(--font-pixel);font-size:12px;margin-bottom:16px">选择银行卡</p>
+        <div id="bank-card-list" style="max-height:300px;overflow-y:auto"></div>
+        <div class="modal-buttons" style="margin-top:12px">
+          <button class="modal-btn" id="bank-picker-cancel">取消</button>
+        </div>
+      `;
+      overlay.appendChild(modal);
+
+      const list = modal.querySelector('#bank-card-list');
+      bankAssets.forEach(a => {
+        const item = document.createElement('div');
+        item.className = 'bank-card-option';
+        item.style.cssText = 'padding:14px;border:2px solid var(--border);margin-bottom:8px;cursor:pointer;background:var(--card-bg);font-size:16px;display:flex;justify-content:space-between;align-items:center';
+        item.innerHTML = `<span>${escapeHtml(a.name)}</span><span style="font-size:13px;color:var(--text-light)">${formatCurrency(a.amount)}</span>`;
+        item.addEventListener('click', function() {
+          selectBankCard(item, a.name, overlay);
+        });
+        list.appendChild(item);
+      });
+
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+      modal.querySelector('#bank-picker-cancel').addEventListener('click', function() {
+        overlay.remove();
+      });
+    }
+
+    function selectBankCard(optionEl, cardName, overlay) {
+      document.querySelectorAll('#account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
+      document.querySelector('#account-selector .account-option[data-account="bank"]').classList.add('selected');
+      document.getElementById('bank-label').textContent = cardName;
+      currentAccount = cardName;
+      overlay.remove();
+    }
+
+    function saveRecord() {
+      const amount = parseFloat(document.getElementById('amount-input').value);
+      const note = document.getElementById('note-input').value.trim() || '无备注';
+
+      if (!amount || amount <= 0) {
+        showToast('请输入有效金额');
+        return;
+      }
+
+      const record = {
+        id: Date.now(),
+        type: currentType,
+        amount: amount,
+        note: note,
+        account: currentAccount,
+        date: formatDateStr(new Date())
+      };
+
+      records.unshift(record);
+      saveRecords();
+      showToast(currentType === 'income' ? '收入已记录 ✓' : '支出已记录 ✓');
+      showView('main-view');
+    }
+
+    document.getElementById('amount-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('note-input').focus();
+    });
+    document.getElementById('note-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') saveRecord();
+    });
+
+    // ==================== Salary ====================
+    function openSalaryForm(e) {
+      if (e) e.stopPropagation();
+      // Default date: last salary date or today
+      const defaultDate = salaryLastDate || formatDateStr(new Date());
+      document.getElementById('salary-date-input').value = defaultDate;
+      document.getElementById('salary-amount-input').value = '';
+      salaryAccount = 'bank';
+
+      document.querySelectorAll('#salary-account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
+      document.querySelector('#salary-account-selector .account-option[data-account="bank"]').classList.add('selected');
+      document.getElementById('salary-bank-label').textContent = '银行卡';
+
+      showView('salary-view');
+      setTimeout(() => document.getElementById('salary-amount-input').focus(), 200);
+    }
+
+    function selectSalaryAccount(el) {
+      const account = el.dataset.account;
+      if (account === 'bank') {
+        openSalaryBankCardPicker();
+        return;
+      }
+      document.querySelectorAll('#salary-account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+      salaryAccount = account;
+    }
+
+    function openSalaryBankCardPicker() {
+      const bankAssets = assets.filter(a => a.type === 'bank');
+      if (bankAssets.length === 0) {
+        showToast('请先在资产页添加银行卡');
+        return;
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <p style="font-family:var(--font-pixel);font-size:12px;margin-bottom:16px">选择银行卡</p>
+        <div id="salary-bank-card-list" style="max-height:300px;overflow-y:auto"></div>
+        <div class="modal-buttons" style="margin-top:12px">
+          <button class="modal-btn" id="salary-bank-picker-cancel">取消</button>
+        </div>
+      `;
+      overlay.appendChild(modal);
+
+      const list = modal.querySelector('#salary-bank-card-list');
+      bankAssets.forEach(a => {
+        const item = document.createElement('div');
+        item.className = 'bank-card-option';
+        item.style.cssText = 'padding:14px;border:2px solid var(--border);margin-bottom:8px;cursor:pointer;background:var(--card-bg);font-size:16px;display:flex;justify-content:space-between;align-items:center';
+        item.innerHTML = `<span>${escapeHtml(a.name)}</span><span style="font-size:13px;color:var(--text-light)">${formatCurrency(a.amount)}</span>`;
+        item.addEventListener('click', function() {
+          selectSalaryBankCard(a.name, overlay);
+        });
+        list.appendChild(item);
+      });
+
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+      modal.querySelector('#salary-bank-picker-cancel').addEventListener('click', function() {
+        overlay.remove();
+      });
+    }
+
+    function selectSalaryBankCard(cardName, overlay) {
+      document.querySelectorAll('#salary-account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
+      document.querySelector('#salary-account-selector .account-option[data-account="bank"]').classList.add('selected');
+      document.getElementById('salary-bank-label').textContent = cardName;
+      salaryAccount = cardName;
+      overlay.remove();
+    }
+
+    let salarySaving = false;
+    function saveSalary() {
+      if (salarySaving) return;
+      const date = document.getElementById('salary-date-input').value;
+      const amount = parseFloat(document.getElementById('salary-amount-input').value);
+
+      if (!date) {
+        showToast('请选择日期');
+        return;
+      }
+      if (!amount || amount <= 0) {
+        showToast('请输入有效金额');
+        return;
+      }
+
+      // Check for duplicate (same date + same amount)
+      const isDuplicate = salaryHistory.some(s => s.date === date && s.amount === amount);
+      if (isDuplicate) {
+        showSalaryDuplicateConfirm(date, amount);
+        return;
+      }
+
+      doSaveSalary(date, amount);
+    }
+
+    function showSalaryDuplicateConfirm(date, amount) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p>该日期已存在相同金额的发薪记录，确认再次添加？</p>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn save" onclick="doSaveSalary('${date}', ${amount}); this.closest('.modal-overlay').remove()">确认添加</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+    }
+
+    function doSaveSalary(date, amount) {
+      salarySaving = true;
+
+      const salaryId = Date.now();
+      const salaryRecord = {
+        id: salaryId,
+        date: date,
+        amount: amount,
+        account: salaryAccount
+      };
+      salaryHistory.unshift(salaryRecord);
+      saveSalaryData();
+
+      salaryLastDate = date;
+      localStorage.setItem('facai_salary_last_date', salaryLastDate);
+
+      const incomeRecord = {
+        id: salaryId + 1,
+        type: 'income',
+        amount: amount,
+        note: '发薪',
+        account: salaryAccount,
+        date: date,
+        isSalary: true,
+        salaryId: salaryId
+      };
+      records.unshift(incomeRecord);
+      saveRecords();
+
+      // Show success modal
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p style="color:var(--salary);font-size:18px">发薪保存成功！</p>
+          <p style="font-size:14px;color:var(--text-light)">日期：${date}<br>金额：${formatCurrency(amount)}<br>账号：${getAccountText(salaryAccount)}</p>
+          <div class="modal-buttons">
+            <button class="modal-btn save" onclick="closeSalarySuccess(this)">确定</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      // Clear form
+      document.getElementById('salary-amount-input').value = '';
+      salarySaving = false;
+    }
+
+    function closeSalarySuccess(btn) {
+      btn.closest('.modal-overlay').remove();
+      showView('main-view');
+    }
+
+    document.getElementById('salary-amount-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') saveSalary();
+    });
+
+    // ==================== Salary History ====================
+    function renderSalaryHistory() {
+      const container = document.getElementById('salary-history-content');
+
+      if (salaryHistory.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                <rect x="5" y="2" width="6" height="1" fill="#b8860b"/>
+                <rect x="4" y="3" width="8" height="1" fill="#b8860b"/>
+                <rect x="3" y="4" width="10" height="8" fill="#fff8dc" stroke="#b8860b" stroke-width="1"/>
+                <rect x="6" y="7" width="4" height="1" fill="#b8860b"/>
+                <rect x="6" y="9" width="4" height="1" fill="#b8860b"/>
+              </svg>
+            </div>
+            <p>还没有发薪记录</p>
+            <p style="margin-top:8px;font-size:14px">点击主页「发薪」开始记录</p>
+          </div>
+        `;
+        return;
+      }
+
+      const sorted = [...salaryHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Group by year > month
+      const grouped = {};
+      sorted.forEach(s => {
+        const d = new Date(s.date);
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        if (!grouped[y]) grouped[y] = {};
+        if (!grouped[y][m]) grouped[y][m] = [];
+        grouped[y][m].push(s);
+      });
+
+      let html = '';
+      Object.keys(grouped).sort((a, b) => b - a).forEach(year => {
+        html += `<div class="year-group"><div class="year-header">${year}年</div>`;
+
+        Object.keys(grouped[year]).sort((a, b) => b - a).forEach(month => {
+          const monthRecords = grouped[year][month];
+          const monthTotal = monthRecords.reduce((s, r) => s + r.amount, 0);
+          html += `<div class="month-group"><div class="month-header">${month}月（共 ${formatCurrency(monthTotal)}）</div>`;
+
+          monthRecords.forEach(r => {
+            const d = new Date(r.date);
+            const dateStr = `${d.getMonth() + 1}月${d.getDate()}日`;
+            const accountText = getAccountText(r.account);
+            html += `
+              <div class="salary-history-item">
+                <div class="salary-history-icon">¥</div>
+                <div class="salary-history-info">
+                  <div class="salary-history-date">${dateStr}</div>
+                  <div class="salary-history-meta">${accountText}</div>
+                </div>
+                <div class="salary-history-amount">${formatCurrency(r.amount)}</div>
+                <button class="delete-btn" onclick="confirmDeleteSalary(${r.id})">删除</button>
+              </div>
+            `;
+          });
+
+          html += `</div>`;
+        });
+
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function confirmDeleteSalary(id) {
+      const record = salaryHistory.find(r => r.id === id);
+      if (!record) return;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p>确认删除 ${formatDateStr(new Date(record.date))} 的发薪记录 ${formatCurrency(record.amount)}？</p>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn confirm" onclick="deleteSalary(${id}, this)">删除</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+    }
+
+    function deleteSalary(id, btn) {
+      // Remove from salary history
+      salaryHistory = salaryHistory.filter(r => r.id !== id);
+      saveSalaryData();
+      // Also remove linked income record
+      records = records.filter(r => r.salaryId !== id);
+      saveRecords();
+      btn.closest('.modal-overlay').remove();
+      renderSalaryHistory();
+      showToast('已删除');
+    }
+
+    // ==================== Main View ====================
+    function updateMainView() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+
+      let incomeTotal = 0, expenseTotal = 0;
+      let incomeCount = 0, expenseCount = 0;
+
+      records.forEach(r => {
+        const d = new Date(r.date);
+        if (d.getFullYear() === year && d.getMonth() === month) {
+          if (r.type === 'income') { incomeTotal += r.amount; incomeCount++; }
+          else { expenseTotal += r.amount; expenseCount++; }
+        }
+      });
+
+      document.getElementById('income-total').textContent = formatCurrency(incomeTotal);
+      document.getElementById('expense-total').textContent = formatCurrency(expenseTotal);
+
+      const net = incomeTotal - expenseTotal;
+      const netEl = document.getElementById('net-balance');
+      netEl.textContent = (net >= 0 ? '+' : '') + formatCurrency(net);
+      netEl.className = 'amount ' + (net >= 0 ? 'positive' : 'negative');
+
+      document.getElementById('income-sub').textContent = incomeCount > 0 ? `本月 ${incomeCount} 笔收入` : '本月暂无收入';
+      document.getElementById('expense-sub').textContent = expenseCount > 0 ? `本月 ${expenseCount} 笔支出` : '本月暂无支出';
+
+      // Salary sub text
+      const salarySub = document.getElementById('salary-sub');
+      if (salaryLastDate) {
+        const lastD = new Date(salaryLastDate);
+        salarySub.textContent = `上次发薪 ${lastD.getMonth() + 1}月${lastD.getDate()}日`;
+      } else {
+        salarySub.textContent = '点击记录发薪';
+      }
+    }
+
+    // ==================== Details Filters ====================
+    function getAvailableYears() {
+      const years = new Set();
+      records.forEach(r => years.add(new Date(r.date).getFullYear()));
+      const now = new Date().getFullYear();
+      years.add(now);
+      return Array.from(years).sort((a, b) => b - a);
+    }
+
+    function initDetailsFilters() {
+      const yearSelect = document.getElementById('details-year-select');
+      const monthSelect = document.getElementById('details-month-select');
+      const years = getAvailableYears();
+
+      const prevYear = yearSelect.value;
+      yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}年</option>`).join('');
+      if (prevYear && years.includes(parseInt(prevYear))) {
+        yearSelect.value = prevYear;
+      }
+
+      const prevMonth = monthSelect.value;
+      monthSelect.innerHTML = '<option value="all">全部月份</option>' +
+        Array.from({length: 12}, (_, i) => `<option value="${i}">${i + 1}月</option>`).join('');
+      if (prevMonth !== '') {
+        monthSelect.value = prevMonth;
+      } else {
+        monthSelect.value = 'all';
+      }
+    }
+
+    // ==================== Details ====================
+    function renderDetails() {
+      const container = document.getElementById('details-content');
+      const yearSelect = document.getElementById('details-year-select');
+      const monthSelect = document.getElementById('details-month-select');
+
+      if (!yearSelect.options.length) return;
+
+      const filterYear = parseInt(yearSelect.value);
+      const filterMonth = monthSelect.value; // 'all' or 0-11
+
+      let filtered = records.filter(r => {
+        const d = new Date(r.date);
+        if (d.getFullYear() !== filterYear) return false;
+        if (filterMonth !== 'all' && d.getMonth() !== parseInt(filterMonth)) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                <rect x="4" y="2" width="8" height="1" fill="#1a1a2e"/>
+                <rect x="3" y="3" width="10" height="1" fill="#1a1a2e"/>
+                <rect x="3" y="4" width="10" height="9" fill="#fff" stroke="#1a1a2e" stroke-width="1"/>
+                <rect x="5" y="7" width="2" height="1" fill="#1a1a2e"/>
+                <rect x="9" y="7" width="2" height="1" fill="#1a1a2e"/>
+                <rect x="6" y="10" width="4" height="1" fill="#1a1a2e"/>
+              </svg>
+            </div>
+            <p>该时间段没有记录</p>
+          </div>
+        `;
+        return;
+      }
+
+      const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
+
+      // Group by year > month > day
+      const grouped = {};
+      sorted.forEach(r => {
+        const d = new Date(r.date);
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const day = d.getDate();
+        if (!grouped[y]) grouped[y] = {};
+        if (!grouped[y][m]) grouped[y][m] = {};
+        if (!grouped[y][m][day]) grouped[y][m][day] = [];
+        grouped[y][m][day].push(r);
+      });
+
+      let html = '';
+      Object.keys(grouped).sort((a, b) => b - a).forEach(year => {
+        html += `<div class="year-group"><div class="year-header">${year}年</div>`;
+
+        Object.keys(grouped[year]).sort((a, b) => b - a).forEach(month => {
+          html += `<div class="month-group"><div class="month-header">${month}月</div>`;
+
+          Object.keys(grouped[year][month]).sort((a, b) => b - a).forEach(day => {
+            const dayRecords = grouped[year][month][day];
+            const dayIncome = dayRecords.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0);
+            const dayExpense = dayRecords.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
+
+            html += `<div class="day-group">`;
+            html += `<div class="day-header"><span class="day-num">${day}日</span><span class="day-summary">`;
+            if (dayIncome > 0) html += `<span style="color:var(--income)">+${formatCurrency(dayIncome)}</span> `;
+            if (dayExpense > 0) html += `<span style="color:var(--expense)">-${formatCurrency(dayExpense)}</span>`;
+            html += `</span></div>`;
+
+            dayRecords.forEach(r => {
+              const accountText = getAccountText(r.account);
+              const icon = r.type === 'income' ? '↑' : '↓';
+              html += `
+                <div class="record-item">
+                  <div class="record-icon ${r.type}">${icon}</div>
+                  <div class="record-info">
+                    <div class="record-note">${escapeHtml(r.note)}</div>
+                    <div class="record-meta">${accountText}</div>
+                  </div>
+                  <div class="record-amount ${r.type}">${r.type === 'income' ? '+' : '-'}${formatCurrency(r.amount)}</div>
+                  <button class="delete-btn" onclick="confirmDelete(${r.id})">删除</button>
+                </div>
+              `;
+            });
+
+            html += `</div>`;
+          });
+
+          html += `</div>`;
+        });
+
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // ==================== Delete ====================
+    function confirmDelete(id) {
+      const record = records.find(r => r.id === id);
+      if (!record) return;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p>确认删除「${escapeHtml(record.note)}」${record.type === 'income' ? '收入' : '支出'} ${formatCurrency(record.amount)}？</p>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn confirm" onclick="deleteRecord(${id}, this)">删除</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+    }
+
+    function deleteRecord(id, btn) {
+      records = records.filter(r => r.id !== id);
+      saveRecords();
+      btn.closest('.modal-overlay').remove();
+      renderDetails();
+      showToast('已删除');
+    }
+
+    // ==================== Chart Filters ====================
+    function initChartFilters() {
+      const yearSelect = document.getElementById('chart-year-select');
+      const monthSelect = document.getElementById('chart-month-select');
+      const years = getAvailableYears();
+
+      const prevYear = yearSelect.value;
+      yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}年</option>`).join('');
+      if (prevYear && years.includes(parseInt(prevYear))) {
+        yearSelect.value = prevYear;
+      }
+
+      const prevMonth = monthSelect.value;
+      monthSelect.innerHTML = Array.from({length: 12}, (_, i) => `<option value="${i}">${i + 1}月</option>`).join('');
+      if (prevMonth !== '') {
+        monthSelect.value = prevMonth;
+      } else {
+        monthSelect.value = new Date().getMonth();
+      }
+    }
+
+    // ==================== Chart ====================
+    function renderChart() {
+      const yearSelect = document.getElementById('chart-year-select');
+      const monthSelect = document.getElementById('chart-month-select');
+
+      if (!yearSelect.options.length) return;
+
+      const filterYear = parseInt(yearSelect.value);
+      const filterMonth = parseInt(monthSelect.value);
+      const daysInMonth = new Date(filterYear, filterMonth + 1, 0).getDate();
+
+      const labels = [];
+      const incomeData = [];
+      const expenseData = [];
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        labels.push(`${day}日`);
+        let income = 0, expense = 0;
+        const dateStr = `${filterYear}-${String(filterMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        records.forEach(r => {
+          if (r.date === dateStr) {
+            if (r.type === 'income') income += r.amount;
+            else expense += r.amount;
+          }
+        });
+        incomeData.push(income);
+        expenseData.push(expense);
+      }
+
+      const totalIncome = incomeData.reduce((s, v) => s + v, 0);
+      const totalExpense = expenseData.reduce((s, v) => s + v, 0);
+
+      document.getElementById('chart-income-label').textContent = `${filterMonth + 1}月收入`;
+      document.getElementById('chart-expense-label').textContent = `${filterMonth + 1}月支出`;
+      document.getElementById('chart-income-total').textContent = formatCurrency(totalIncome);
+      document.getElementById('chart-expense-total').textContent = formatCurrency(totalExpense);
+
+      const ctx = document.getElementById('line-chart').getContext('2d');
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '收入',
+              data: incomeData,
+              borderColor: '#2d6a4f',
+              backgroundColor: 'rgba(45,106,79,0.08)',
+              borderWidth: 2,
+              tension: 0,
+              pointRadius: daysInMonth > 20 ? 2 : 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#2d6a4f',
+              pointBorderColor: '#1a1a2e',
+              pointBorderWidth: 1,
+              fill: true
+            },
+            {
+              label: '支出',
+              data: expenseData,
+              borderColor: '#9d0208',
+              backgroundColor: 'rgba(157,2,8,0.08)',
+              borderWidth: 2,
+              tension: 0,
+              pointRadius: daysInMonth > 20 ? 2 : 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#9d0208',
+              pointBorderColor: '#1a1a2e',
+              pointBorderWidth: 1,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              titleFont: { family: 'monospace', size: 13 },
+              bodyFont: { family: 'monospace', size: 13 },
+              borderColor: '#1a1a2e',
+              borderWidth: 2,
+              padding: 10,
+              callbacks: {
+                label: function(ctx) {
+                  return ctx.dataset.label + ': ¥' + ctx.parsed.y.toFixed(2);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(26,26,46,0.08)', lineWidth: 1 },
+              ticks: {
+                font: { family: 'monospace', size: 9 },
+                color: '#1a1a2e',
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 15
+              },
+              border: { color: '#1a1a2e', width: 2 }
+            },
+            y: {
+              grid: { color: 'rgba(26,26,46,0.08)', lineWidth: 1 },
+              ticks: {
+                font: { family: 'monospace', size: 12 },
+                color: '#1a1a2e',
+                callback: function(v) { return '¥' + v; }
+              },
+              beginAtZero: true,
+              border: { color: '#1a1a2e', width: 2 }
+            }
+          }
+        }
+      });
+    }
+
+    // ==================== Assets ====================
+    function getAssetTypeLabel(type) {
+      if (type === 'bank') return '银行卡';
+      if (type === 'wechat') return '微信';
+      if (type === 'alipay') return '支付宝';
+      if (type === 'cash') return '现金';
+      return '其他';
+    }
+
+    function getAssetTypeIcon(type) {
+      const icons = {
+        bank: '银',
+        wechat: '微',
+        alipay: '支',
+        cash: '现',
+        other: '其'
+      };
+      return icons[type] || '其';
+    }
+
+    function renderAssets() {
+      const list = document.getElementById('assets-list');
+      const total = assets.reduce((s, a) => s + a.amount, 0);
+      const totalEl = document.getElementById('assets-total');
+      totalEl.textContent = formatCurrency(total);
+      totalEl.style.color = total < 0 ? 'var(--expense)' : 'var(--yellow)';
+
+      if (assets.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg width="64" height="64" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                <rect x="5" y="2" width="6" height="1" fill="#1a1a2e"/>
+                <rect x="4" y="3" width="8" height="1" fill="#1a1a2e"/>
+                <rect x="3" y="4" width="10" height="8" fill="#fff" stroke="#1a1a2e" stroke-width="1"/>
+                <rect x="5" y="6" width="6" height="1" fill="#1a1a2e"/>
+                <rect x="5" y="8" width="4" height="1" fill="#1a1a2e"/>
+                <rect x="5" y="10" width="6" height="1" fill="#1a1a2e"/>
+              </svg>
+            </div>
+            <p>还没有添加资产</p>
+            <p style="margin-top:8px;font-size:14px">点击上方按钮添加资产</p>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = assets.map(a => `
+        <div class="asset-item">
+          <div class="asset-icon-box">${getAssetTypeIcon(a.type)}</div>
+          <div class="asset-info">
+            <div class="asset-name">${escapeHtml(a.name)}</div>
+            <div class="asset-meta">${getAssetTypeLabel(a.type)}</div>
+          </div>
+          <div class="asset-amount${a.amount < 0 ? ' negative' : ''}">${formatCurrency(a.amount)}</div>
+          <div class="asset-actions">
+            <button class="icon-btn" onclick="openAssetModal(${a.id})">编辑</button>
+            <button class="icon-btn danger" onclick="confirmDeleteAsset(${a.id})">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openAssetModal(id) {
+      const isEdit = id !== undefined;
+      const asset = isEdit ? assets.find(a => a.id === id) : null;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal modal-form">
+          <p>${isEdit ? '编辑资产' : '添加资产'}</p>
+          <div class="form-group">
+            <label style="font-family:var(--font-pixel);font-size:8px;margin-bottom:8px;color:var(--text-light)">名称</label>
+            <input type="text" id="asset-name-input" placeholder="如：工商银行储蓄卡" maxlength="20" value="${asset ? escapeHtml(asset.name) : ''}" style="width:100%;padding:12px;border:2px solid var(--border);font-family:var(--font-text);font-size:16px;background:var(--card-bg);color:var(--text);outline:none">
+          </div>
+          <div class="form-group">
+            <label style="font-family:var(--font-pixel);font-size:8px;margin-bottom:8px;color:var(--text-light)">类型</label>
+            <div class="type-selector" id="asset-type-selector">
+              <div class="type-option ${(!asset || asset.type === 'bank') ? 'selected' : ''}" data-type="bank" onclick="selectAssetType(this)">银行卡</div>
+              <div class="type-option ${asset && asset.type === 'wechat' ? 'selected' : ''}" data-type="wechat" onclick="selectAssetType(this)">微信</div>
+              <div class="type-option ${asset && asset.type === 'alipay' ? 'selected' : ''}" data-type="alipay" onclick="selectAssetType(this)">支付宝</div>
+              <div class="type-option ${asset && asset.type === 'cash' ? 'selected' : ''}" data-type="cash" onclick="selectAssetType(this)">现金</div>
+              <div class="type-option ${asset && asset.type === 'other' ? 'selected' : ''}" data-type="other" onclick="selectAssetType(this)">其他</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label style="font-family:var(--font-pixel);font-size:8px;margin-bottom:8px;color:var(--text-light)">金额</label>
+            <div class="amount-input-wrapper">
+              <input type="number" id="asset-amount-input" placeholder="0.00 (负数为负债)" step="0.01" value="${asset ? asset.amount : ''}" style="width:100%;padding:12px 12px 12px 36px;border:2px solid var(--border);font-family:var(--font-pixel);font-size:18px;background:var(--card-bg);color:var(--text);outline:none">
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn save" onclick="saveAsset(${isEdit ? id : 'null'}, this)">保存</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+    }
+
+    function selectAssetType(el) {
+      document.querySelectorAll('#asset-type-selector .type-option').forEach(opt => opt.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function saveAsset(id, btn) {
+      const name = document.getElementById('asset-name-input').value.trim();
+      const amount = parseFloat(document.getElementById('asset-amount-input').value);
+      const typeEl = document.querySelector('#asset-type-selector .type-option.selected');
+      const type = typeEl ? typeEl.dataset.type : 'bank';
+
+      if (!name) {
+        showToast('请输入资产名称');
+        return;
+      }
+      if (isNaN(amount)) {
+        showToast('请输入有效金额');
+        return;
+      }
+
+      if (id) {
+        // Edit
+        const asset = assets.find(a => a.id === id);
+        if (asset) {
+          asset.name = name;
+          asset.amount = amount;
+          asset.type = type;
+        }
+      } else {
+        // Add
+        assets.push({
+          id: Date.now(),
+          name: name,
+          type: type,
+          amount: amount
+        });
+      }
+
+      saveAssets();
+      btn.closest('.modal-overlay').remove();
+      renderAssets();
+      showToast(id ? '资产已更新 ✓' : '资产已添加 ✓');
+    }
+
+    function confirmDeleteAsset(id) {
+      const asset = assets.find(a => a.id === id);
+      if (!asset) return;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p>确认删除「${escapeHtml(asset.name)}」？</p>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn confirm" onclick="deleteAsset(${id}, this)">删除</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+    }
+
+    function deleteAsset(id, btn) {
+      assets = assets.filter(a => a.id !== id);
+      saveAssets();
+      btn.closest('.modal-overlay').remove();
+      renderAssets();
+      showToast('已删除');
+    }
+
+    // ==================== Transfer ====================
+    function openTransferModal() {
+      if (assets.length < 2) {
+        showToast('至少需要2个资产才能转账');
+        return;
+      }
+
+      const options = assets.map(a => `<option value="${a.id}">${escapeHtml(a.name)} (${formatCurrency(a.amount)})</option>`).join('');
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p style="font-family:var(--font-pixel);font-size:12px;margin-bottom:16px">资产转账</p>
+          <div class="form-group">
+            <label style="font-family:var(--font-pixel);font-size:8px;margin-bottom:8px;color:var(--text-light)">转出账户</label>
+            <select id="transfer-from">${options}</select>
+          </div>
+          <div class="transfer-arrow">↓</div>
+          <div class="form-group">
+            <label style="font-family:var(--font-pixel);font-size:8px;margin-bottom:8px;color:var(--text-light)">转入账户</label>
+            <select id="transfer-to">${options}</select>
+          </div>
+          <div class="form-group">
+            <label style="font-family:var(--font-pixel);font-size:8px;margin-bottom:8px;color:var(--text-light)">转账金额</label>
+            <div class="amount-input-wrapper">
+              <input type="number" id="transfer-amount" placeholder="0.00" step="0.01" min="0" inputmode="decimal" autocomplete="off" style="width:100%;padding:12px 12px 12px 36px;border:2px solid var(--border);font-family:var(--font-pixel);font-size:18px;background:var(--card-bg);color:var(--text);outline:none">
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn save" onclick="executeTransfer(this)">确认转账</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+
+      // Default: second asset as target
+      const toSelect = document.getElementById('transfer-to');
+      if (toSelect.options.length > 1) toSelect.selectedIndex = 1;
+    }
+
+    function executeTransfer(btn) {
+      const fromId = parseInt(document.getElementById('transfer-from').value);
+      const toId = parseInt(document.getElementById('transfer-to').value);
+      const amount = parseFloat(document.getElementById('transfer-amount').value);
+
+      if (fromId === toId) {
+        showToast('转出和转入账户不能相同');
+        return;
+      }
+      if (!amount || amount <= 0) {
+        showToast('请输入有效金额');
+        return;
+      }
+
+      const fromAsset = assets.find(a => a.id === fromId);
+      const toAsset = assets.find(a => a.id === toId);
+      if (!fromAsset || !toAsset) return;
+
+      if (fromAsset.amount < amount) {
+        showToast('余额不足');
+        return;
+      }
+
+      fromAsset.amount -= amount;
+      toAsset.amount += amount;
+      saveAssets();
+
+      btn.closest('.modal-overlay').remove();
+      renderAssets();
+
+      // Success modal
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p style="color:var(--income);font-size:18px">转账成功！</p>
+          <p style="font-size:14px;color:var(--text-light)">
+            从「${escapeHtml(fromAsset.name)}」<br>
+            转入「${escapeHtml(toAsset.name)}」<br>
+            金额：${formatCurrency(amount)}
+          </p>
+          <div class="modal-buttons">
+            <button class="modal-btn save" onclick="this.closest('.modal-overlay').remove()">确定</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    // ==================== Toast ====================
+    function showToast(msg) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('fadeOut');
+        setTimeout(() => toast.remove(), 300);
+      }, 1500);
+    }
+
+    // ==================== Init ====================
+    updateMainView();
+
+    // ==================== PWA Service Worker ====================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./service-worker.js').then(function(reg) {
+          reg.addEventListener('updatefound', function() {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', function() {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  showPWAUpdatePrompt(reg);
+                }
+              });
+            }
+          });
+        }).catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+
+    function showPWAUpdatePrompt(reg) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p style="font-size:18px;margin-bottom:8px">发现新版本</p>
+          <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">重新加载页面即可使用最新版本</p>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">稍后</button>
+            <button class="modal-btn save" onclick="reloadPWA()">立即更新</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      window._pendingSWReg = reg;
+    }
+
+    function reloadPWA() {
+      if (window._pendingSWReg && window._pendingSWReg.waiting) {
+        window._pendingSWReg.waiting.postMessage('SKIP_WAITING');
+      }
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>

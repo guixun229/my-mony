@@ -1,0 +1,13 @@
+{
+  "appId": "com.facai.app",
+  "appName": "发财",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "facai.local"
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "backgroundColor": "#1a1a2e"
+}
