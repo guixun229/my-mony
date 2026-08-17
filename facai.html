@@ -1293,14 +1293,14 @@
             </svg>
             <span id="bank-label">银行卡</span>
           </div>
-          <div class="account-option" data-account="wechat" onclick="selectAccount(this)">
-            <svg width="16" height="16" viewBox="0 0 10 10" shape-rendering="crispEdges" class="acc-icon">
+          <div class="account-option" data-account="wechat" onclick="selectAccount(this)" id="epay-option">
+            <svg width="16" height="16" viewBox="0 0 10 10" shape-rendering="crispEdges" class="acc-icon" id="epay-icon">
               <rect x="1" y="2" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1"/>
               <rect x="3" y="4" width="1" height="1" fill="currentColor"/>
               <rect x="5" y="4" width="1" height="1" fill="currentColor"/>
               <rect x="2" y="8" width="3" height="1" fill="currentColor"/>
             </svg>
-            微信
+            <span id="epay-label">微信</span>
           </div>
         </div>
       </div>
@@ -1492,7 +1492,7 @@
   <script>
     // ==================== Data ====================
     // Version check: clear old data on version upgrade
-    const DATA_VERSION = 'v2_clean';
+    const DATA_VERSION = 'v3_clean';
     if (localStorage.getItem('facai_data_version') !== DATA_VERSION) {
       localStorage.removeItem('facai_records');
       localStorage.removeItem('facai_assets');
@@ -1867,6 +1867,9 @@
       document.querySelectorAll('#account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
       document.querySelector('#account-selector .account-option[data-account="bank"]').classList.add('selected');
       document.getElementById('bank-label').textContent = '银行卡';
+      document.getElementById('epay-label').textContent = '微信';
+      document.getElementById('epay-icon').innerHTML = '<rect x="1" y="2" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="4" width="1" height="1" fill="currentColor"/><rect x="5" y="4" width="1" height="1" fill="currentColor"/><rect x="2" y="8" width="3" height="1" fill="currentColor"/>';
+      document.getElementById('epay-option').dataset.account = 'wechat';
       currentAccount = 'bank';
 
       showView('add-view');
@@ -1879,9 +1882,25 @@
         openBankCardPicker(el);
         return;
       }
+      // Toggle between WeChat and Alipay when already selected
+      if (el.classList.contains('selected')) {
+        const currentLabel = document.getElementById('epay-label').textContent;
+        if (currentLabel === '微信') {
+          document.getElementById('epay-label').textContent = '支付宝';
+          document.getElementById('epay-icon').innerHTML = '<rect x="1" y="2" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2" y="3" width="1" height="1" fill="currentColor"/><rect x="4" y="3" width="1" height="1" fill="currentColor"/><rect x="6" y="3" width="1" height="1" fill="currentColor"/><rect x="2" y="8" width="3" height="1" fill="currentColor"/>';
+          currentAccount = 'alipay';
+          el.dataset.account = 'alipay';
+        } else {
+          document.getElementById('epay-label').textContent = '微信';
+          document.getElementById('epay-icon').innerHTML = '<rect x="1" y="2" width="8" height="5" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="4" width="1" height="1" fill="currentColor"/><rect x="5" y="4" width="1" height="1" fill="currentColor"/><rect x="2" y="8" width="3" height="1" fill="currentColor"/>';
+          currentAccount = 'wechat';
+          el.dataset.account = 'wechat';
+        }
+        return;
+      }
       document.querySelectorAll('#account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
       el.classList.add('selected');
-      currentAccount = account;
+      currentAccount = el.dataset.account;
     }
 
     function openBankCardPicker(clickedEl) {
