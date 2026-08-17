@@ -4,16 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>发财 - 像素记账</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#1a1a2e">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="发财">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="icon" type="image/png" href="./icon-192.png">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -468,6 +458,140 @@
       gap: 8px;
     }
 
+    /* Search */
+    .search-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+    }
+    .search-btn:active { transform: translate(1px, 1px); }
+
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .search-bar.hidden { display: none; }
+    .search-bar input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      font-family: var(--font-text);
+      font-size: 16px;
+      background: var(--card-bg);
+      color: var(--text);
+      outline: none;
+    }
+    .search-clear {
+      background: none;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 8px 12px;
+      color: var(--text);
+    }
+
+    /* Comments */
+    .record-comments {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--text-light);
+    }
+    .comment-item {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 4px;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.03);
+      border-left: 3px solid var(--accent);
+      word-break: break-word;
+    }
+    .comment-add-btn {
+      background: none;
+      border: 1px dashed var(--text-light);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-light);
+      padding: 4px 8px;
+      font-family: var(--font-text);
+    }
+    .comment-add-btn:active { color: var(--accent); border-color: var(--accent); }
+
+    /* Record Images */
+    .record-images {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .record-img-thumb {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      image-rendering: auto;
+    }
+    .record-img-thumb:active { border-color: var(--accent); }
+    .img-add-btn {
+      background: none;
+      border: 1px dashed var(--text-light);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-light);
+      padding: 4px 8px;
+      font-family: var(--font-text);
+      margin-left: 4px;
+    }
+    .img-add-btn:active { color: var(--accent); border-color: var(--accent); }
+    .img-delete-btn {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .img-viewer-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .img-viewer-overlay img {
+      max-width: 95vw;
+      max-height: 85vh;
+      object-fit: contain;
+    }
+    .img-viewer-close {
+      margin-top: 16px;
+      padding: 10px 32px;
+      background: var(--border);
+      color: var(--text);
+      border: 2px solid var(--text);
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      cursor: pointer;
+    }
+
     /* Buttons */
     .btn {
       width: 100%;
@@ -644,6 +768,7 @@
 
     .record-icon.income { background: var(--income-bg); color: var(--income); border-color: var(--income); }
     .record-icon.expense { background: var(--expense-bg); color: var(--expense); border-color: var(--expense); }
+    .record-icon.transfer { background: var(--salary-bg); color: var(--salary); border-color: var(--salary); }
 
     .record-info { flex: 1; min-width: 0; }
 
@@ -667,6 +792,7 @@
 
     .record-amount.income { color: var(--income); }
     .record-amount.expense { color: var(--expense); }
+    .record-amount.transfer { color: var(--salary); }
 
     .delete-btn {
       background: none;
@@ -784,7 +910,7 @@
 
     .asset-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       padding: 14px 12px;
       border: 2px solid var(--border);
@@ -811,6 +937,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-bottom: 4px;
     }
 
     .asset-meta {
@@ -823,6 +950,7 @@
       font-size: 11px;
       color: var(--income);
       white-space: nowrap;
+      text-align: right;
     }
 
     .asset-amount.negative {
@@ -833,6 +961,7 @@
       display: flex;
       gap: 6px;
       flex-shrink: 0;
+      margin-top: 8px;
     }
 
     .icon-btn {
@@ -1058,6 +1187,7 @@
                 <span class="update-dot hidden" id="update-dot"></span>
               </a>
               <a onclick="exportData()">数据导出</a>
+              <a onclick="importData()">数据导入</a>
             </div>
           </div>
           发财
@@ -1176,21 +1306,8 @@
       </div>
 
       <div class="form-group">
-        <label>日期（自动当天）</label>
-        <div class="date-display" id="date-display">
-          <svg width="16" height="16" viewBox="0 0 10 10" shape-rendering="crispEdges">
-            <rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1"/>
-            <rect x="1" y="1" width="8" height="2" fill="currentColor"/>
-            <rect x="3" y="0" width="1" height="2" fill="currentColor"/>
-            <rect x="6" y="0" width="1" height="2" fill="currentColor"/>
-            <rect x="3" y="4" width="1" height="1" fill="#fff"/>
-            <rect x="5" y="4" width="1" height="1" fill="#fff"/>
-            <rect x="7" y="4" width="1" height="1" fill="#fff"/>
-            <rect x="3" y="6" width="1" height="1" fill="#fff"/>
-            <rect x="5" y="6" width="1" height="1" fill="#fff"/>
-          </svg>
-          <span id="date-text">2026-08-12</span>
-        </div>
+        <label>日期</label>
+        <input type="date" id="date-input" min="2000-01-01" max="2099-12-31">
       </div>
 
       <button class="btn btn-income" id="save-btn" onclick="saveRecord()">保存</button>
@@ -1259,9 +1376,24 @@
     <!-- ========== Details View ========== -->
     <div id="details-view" class="view">
       <div class="app-header">
-        <button class="back-btn" onclick="showView('main-view')">←</button>
+        <button class="back-btn" onclick="document.getElementById('search-input').value='';document.getElementById('search-bar').classList.add('hidden');showView('main-view')">←</button>
         <span class="title-center">详情</span>
-        <div class="spacer"></div>
+        <button class="search-btn" id="search-toggle-btn" onclick="toggleSearch()">
+          <svg width="20" height="20" viewBox="0 0 10 10" shape-rendering="crispEdges">
+            <rect x="2" y="2" width="4" height="4" fill="none" stroke="currentColor" stroke-width="1"/>
+            <rect x="6" y="6" width="1" height="1" fill="currentColor"/>
+            <rect x="7" y="7" width="1" height="1" fill="currentColor"/>
+            <rect x="3" y="1" width="2" height="1" fill="currentColor"/>
+            <rect x="1" y="3" width="1" height="2" fill="currentColor"/>
+            <rect x="6" y="3" width="1" height="2" fill="currentColor"/>
+            <rect x="3" y="6" width="2" height="1" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="search-bar hidden" id="search-bar">
+        <input type="text" id="search-input" placeholder="搜索备注/评论，按回车完成" oninput="renderDetails()" autocomplete="off">
+        <button class="search-clear" onclick="clearSearch()">✕</button>
       </div>
 
       <div class="filter-bar">
@@ -1340,6 +1472,20 @@
       <button class="btn btn-transfer" onclick="openTransferModal()">转账</button>
 
       <div id="assets-list"></div>
+    </div>
+
+    <!-- ========== Asset Records View ========== -->
+    <div id="asset-records-view" class="view">
+      <div class="app-header">
+        <button class="back-btn" onclick="showView('assets-view')">←</button>
+        <span class="title-center" id="asset-records-title">交易记录</span>
+        <div class="spacer"></div>
+      </div>
+      <div class="assets-total">
+        <div class="label" id="asset-records-balance-label">余额</div>
+        <div class="amount" id="asset-records-balance">¥0.00</div>
+      </div>
+      <div id="asset-records-content"></div>
     </div>
   </div>
 
@@ -1472,19 +1618,11 @@
     }
 
     // ==================== Update Check ====================
-    const APP_VERSION = '2.0.0';
-    const LATEST_VERSION = '2.0.0'; // Simulated: same = no update needed
+    const APP_VERSION = '1.0.0';
+    const LATEST_VERSION = '1.0.0'; // Simulated: same = no update needed
 
     function checkUpdate() {
       closeSettings();
-
-      // Trigger service worker update check
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistration().then(function(reg) {
-          if (reg) reg.update();
-        });
-      }
-
       const isNewVersion = LATEST_VERSION !== APP_VERSION;
 
       const overlay = document.createElement('div');
@@ -1552,6 +1690,7 @@
           <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">选择导出格式</p>
           <div class="modal-buttons">
             <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn" onclick="exportJSON(); this.closest('.modal-overlay').remove()">JSON备份</button>
             <button class="modal-btn save" onclick="exportToXLS(this)">XLS 导出</button>
           </div>
         </div>
@@ -1573,7 +1712,7 @@
       records.forEach(function(r) {
         html += '<tr>';
         html += '<td style="padding:4px">' + escapeHtml(r.date) + '</td>';
-        html += '<td style="padding:4px">' + (r.type === 'income' ? '收入' : '支出') + '</td>';
+        html += '<td style="padding:4px">' + (r.type === 'income' ? '收入' : r.type === 'transfer' ? '转账' : '支出') + '</td>';
         html += '<td style="padding:4px;text-align:right">' + r.amount.toFixed(2) + '</td>';
         html += '<td style="padding:4px">' + escapeHtml(r.note) + '</td>';
         html += '<td style="padding:4px">' + escapeHtml(getAccountText(r.account)) + '</td>';
@@ -1631,6 +1770,73 @@
       showToast('数据已导出');
     }
 
+    // ==================== Data Import ====================
+    function importData() {
+      closeSettings();
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p style="font-family:var(--font-pixel);font-size:12px;margin-bottom:12px">数据导入</p>
+          <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">选择之前导出的 JSON 文件，导入后将覆盖当前数据</p>
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn save" onclick="document.getElementById('import-file-input').click()">选择文件</button>
+          </div>
+          <input type="file" id="import-file-input" accept=".json" style="display:none">
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+
+      document.getElementById('import-file-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (data.records) records = data.records;
+            if (data.assets) assets = data.assets;
+            if (data.salaryHistory) salaryHistory = data.salaryHistory;
+            if (data.salaryLastDate !== undefined) salaryLastDate = data.salaryLastDate;
+            saveRecords();
+            saveAssets();
+            saveSalaryData();
+            localStorage.setItem('facai_salary_last_date', salaryLastDate);
+            overlay.remove();
+            updateMainView();
+            showToast('数据导入成功 ✓');
+          } catch(err) {
+            showToast('文件格式错误');
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    // ==================== Data Export (JSON) ====================
+    function exportJSON() {
+      const data = {
+        records: records,
+        assets: assets,
+        salaryHistory: salaryHistory,
+        salaryLastDate: salaryLastDate,
+        exportDate: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '发财_数据备份_' + formatDateStr(new Date()) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
     // ==================== Add Record ====================
     function openAddForm(type) {
       currentType = type;
@@ -1656,7 +1862,7 @@
 
       document.getElementById('amount-input').value = '';
       document.getElementById('note-input').value = '';
-      document.getElementById('date-text').textContent = formatDateStr(new Date());
+      document.getElementById('date-input').value = formatDateStr(new Date());
 
       document.querySelectorAll('#account-selector .account-option').forEach(opt => opt.classList.remove('selected'));
       document.querySelector('#account-selector .account-option[data-account="bank"]').classList.add('selected');
@@ -1730,6 +1936,8 @@
     function saveRecord() {
       const amount = parseFloat(document.getElementById('amount-input').value);
       const note = document.getElementById('note-input').value.trim() || '无备注';
+      const dateInput = document.getElementById('date-input').value;
+      const recordDate = dateInput || formatDateStr(new Date());
 
       if (!amount || amount <= 0) {
         showToast('请输入有效金额');
@@ -1742,13 +1950,43 @@
         amount: amount,
         note: note,
         account: currentAccount,
-        date: formatDateStr(new Date())
+        date: recordDate,
+        comments: []
       };
 
       records.unshift(record);
       saveRecords();
+
+      // Auto-update asset balance
+      updateAssetForRecord(record);
+
       showToast(currentType === 'income' ? '收入已记录 ✓' : '支出已记录 ✓');
       showView('main-view');
+    }
+
+    function updateAssetForRecord(record) {
+      let matchedAsset = null;
+      assets.forEach(a => {
+        if (a.name === record.account) {
+          matchedAsset = a;
+        } else if (record.account === 'bank' && a.type === 'bank') {
+          matchedAsset = a;
+        } else if (record.account === 'wechat' && a.type === 'wechat') {
+          matchedAsset = a;
+        } else if (record.account === 'alipay' && a.type === 'alipay') {
+          matchedAsset = a;
+        } else if (record.account === 'cash' && a.type === 'cash') {
+          matchedAsset = a;
+        }
+      });
+      if (matchedAsset) {
+        if (record.type === 'income') {
+          matchedAsset.amount += record.amount;
+        } else {
+          matchedAsset.amount -= record.amount;
+        }
+        saveAssets();
+      }
     }
 
     document.getElementById('amount-input').addEventListener('keydown', function(e) {
@@ -1935,6 +2173,28 @@
       if (e.key === 'Enter') saveSalary();
     });
 
+    document.getElementById('search-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const term = this.value.trim();
+        if (term) {
+          const yearSelect = document.getElementById('details-year-select');
+          const monthSelect = document.getElementById('details-month-select');
+          const filterYear = parseInt(yearSelect.value);
+          const filterMonth = monthSelect.value;
+          const count = records.filter(r => {
+            const d = new Date(r.date);
+            if (d.getFullYear() !== filterYear) return false;
+            if (filterMonth !== 'all' && d.getMonth() !== parseInt(filterMonth)) return false;
+            const noteMatch = r.note.toLowerCase().includes(term.toLowerCase());
+            const commentMatch = (r.comments || []).some(c => c.toLowerCase().includes(term.toLowerCase()));
+            return noteMatch || commentMatch;
+          }).length;
+          showSearchResult(count, term);
+          document.getElementById('search-bar').classList.add('hidden');
+        }
+      }
+    });
+
     // ==================== Salary History ====================
     function renderSalaryHistory() {
       const container = document.getElementById('salary-history-content');
@@ -2049,6 +2309,7 @@
       let incomeCount = 0, expenseCount = 0;
 
       records.forEach(r => {
+        if (r.type === 'transfer') return;
         const d = new Date(r.date);
         if (d.getFullYear() === year && d.getMonth() === month) {
           if (r.type === 'income') { incomeTotal += r.amount; incomeCount++; }
@@ -2108,10 +2369,52 @@
     }
 
     // ==================== Details ====================
+    function toggleSearch() {
+      const searchBar = document.getElementById('search-bar');
+      searchBar.classList.toggle('hidden');
+      if (!searchBar.classList.contains('hidden')) {
+        document.getElementById('search-input').focus();
+      } else {
+        document.getElementById('search-input').value = '';
+        renderDetails();
+      }
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      renderDetails();
+    }
+
+    function showSearchResult(count, term) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      let msg;
+      if (count === 0) {
+        msg = `没有找到包含「${escapeHtml(term)}」的记录`;
+      } else {
+        msg = `搜索完成\n找到 ${count} 条包含「${escapeHtml(term)}」的记录`;
+      }
+      overlay.innerHTML = `
+        <div class="modal">
+          <p style="font-family:var(--font-pixel);font-size:10px;margin-bottom:12px">搜索结果</p>
+          <p style="font-size:16px;white-space:pre-line;text-align:center">${msg}</p>
+          <div class="modal-buttons">
+            <button class="modal-btn save" onclick="this.closest('.modal-overlay').remove()">确定</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+    }
+
     function renderDetails() {
       const container = document.getElementById('details-content');
       const yearSelect = document.getElementById('details-year-select');
       const monthSelect = document.getElementById('details-month-select');
+      const searchInput = document.getElementById('search-input');
+      const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
       if (!yearSelect.options.length) return;
 
@@ -2122,6 +2425,11 @@
         const d = new Date(r.date);
         if (d.getFullYear() !== filterYear) return false;
         if (filterMonth !== 'all' && d.getMonth() !== parseInt(filterMonth)) return false;
+        if (searchTerm) {
+          const noteMatch = r.note.toLowerCase().includes(searchTerm);
+          const commentMatch = (r.comments || []).some(c => c.toLowerCase().includes(searchTerm));
+          if (!noteMatch && !commentMatch) return false;
+        }
         return true;
       });
 
@@ -2138,7 +2446,7 @@
                 <rect x="6" y="10" width="4" height="1" fill="#1a1a2e"/>
               </svg>
             </div>
-            <p>该时间段没有记录</p>
+            <p>${searchTerm ? '没有找到匹配的记录' : '该时间段没有记录'}</p>
           </div>
         `;
         return;
@@ -2170,7 +2478,6 @@
             const dayRecords = grouped[year][month][day];
             const dayIncome = dayRecords.filter(r => r.type === 'income').reduce((s, r) => s + r.amount, 0);
             const dayExpense = dayRecords.filter(r => r.type === 'expense').reduce((s, r) => s + r.amount, 0);
-
             html += `<div class="day-group">`;
             html += `<div class="day-header"><span class="day-num">${day}日</span><span class="day-summary">`;
             if (dayIncome > 0) html += `<span style="color:var(--income)">+${formatCurrency(dayIncome)}</span> `;
@@ -2179,16 +2486,53 @@
 
             dayRecords.forEach(r => {
               const accountText = getAccountText(r.account);
-              const icon = r.type === 'income' ? '↑' : '↓';
+              let icon, iconClass, amountPrefix, amountClass, recordMeta;
+              if (r.type === 'transfer') {
+                icon = '⇄';
+                iconClass = 'transfer';
+                amountPrefix = '';
+                amountClass = 'transfer';
+                recordMeta = `${escapeHtml(r.account)} → ${escapeHtml(r.toAccount || '')}`;
+              } else {
+                icon = r.type === 'income' ? '↑' : '↓';
+                iconClass = r.type;
+                amountPrefix = r.type === 'income' ? '+' : '-';
+                amountClass = r.type;
+                recordMeta = accountText;
+              }
+              const comments = r.comments || [];
+              const images = r.images || [];
+              let commentHtml = '';
+              if (comments.length > 0) {
+                commentHtml += '<div class="record-comments">';
+                comments.forEach((c, i) => {
+                  commentHtml += `<div class="comment-item">${escapeHtml(c)}</div>`;
+                });
+                commentHtml += '</div>';
+              }
+              let imageHtml = '';
+              if (images.length > 0) {
+                imageHtml += '<div class="record-images">';
+                images.forEach((src, i) => {
+                  imageHtml += `<img class="record-img-thumb" src="${src}" onclick="viewImage(${r.id}, ${i})" ontouchstart="startLongPress(${r.id}, ${i})" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()" onmousedown="startLongPress(${r.id}, ${i})" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()">`;
+                });
+                imageHtml += '</div>';
+              }
               html += `
-                <div class="record-item">
-                  <div class="record-icon ${r.type}">${icon}</div>
+                <div class="record-item" style="flex-wrap:wrap">
+                  <div class="record-icon ${iconClass}">${icon}</div>
                   <div class="record-info">
                     <div class="record-note">${escapeHtml(r.note)}</div>
-                    <div class="record-meta">${accountText}</div>
+                    <div class="record-meta">${recordMeta}</div>
                   </div>
-                  <div class="record-amount ${r.type}">${r.type === 'income' ? '+' : '-'}${formatCurrency(r.amount)}</div>
+                  <div class="record-amount ${amountClass}">${amountPrefix}${formatCurrency(r.amount)}</div>
                   <button class="delete-btn" onclick="confirmDelete(${r.id})">删除</button>
+                  <div style="width:100%">
+                    ${commentHtml}
+                    ${imageHtml}
+                    <button class="comment-add-btn" onclick="addComment(${r.id})">+ 评论</button>
+                    <button class="img-add-btn" onclick="addImage(${r.id})">+ 图片</button>
+                  </div>
                 </div>
               `;
             });
@@ -2205,6 +2549,124 @@
       container.innerHTML = html;
     }
 
+    function addComment(recordId) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <p style="font-family:var(--font-pixel);font-size:10px;margin-bottom:12px">添加评论</p>
+          <input type="text" id="comment-input" placeholder="写点评论..." maxlength="100" style="width:100%;padding:12px;border:2px solid var(--border);font-family:var(--font-text);font-size:16px;background:var(--card-bg);color:var(--text);outline:none;margin-bottom:12px">
+          <div class="modal-buttons">
+            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="modal-btn save" onclick="saveComment(${recordId}, this)">保存</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+      setTimeout(() => document.getElementById('comment-input').focus(), 100);
+      document.getElementById('comment-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') saveComment(recordId, document.querySelector('.modal-btn.save'));
+      });
+    }
+
+    function saveComment(recordId, btn) {
+      const text = document.getElementById('comment-input').value.trim();
+      if (!text) {
+        showToast('请输入评论内容');
+        return;
+      }
+      const record = records.find(r => r.id === recordId);
+      if (record) {
+        if (!record.comments) record.comments = [];
+        record.comments.push(text);
+        saveRecords();
+      }
+      btn.closest('.modal-overlay').remove();
+      renderDetails();
+      showToast('评论已添加');
+    }
+
+    // ==================== Images ====================
+    function addImage(recordId) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('图片不能超过5MB');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const record = records.find(r => r.id === recordId);
+          if (record) {
+            if (!record.images) record.images = [];
+            record.images.push(ev.target.result);
+            saveRecords();
+            renderDetails();
+            showToast('图片已添加');
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+
+    function deleteImage(recordId, index) {
+      const record = records.find(r => r.id === recordId);
+      if (record && record.images) {
+        record.images.splice(index, 1);
+        saveRecords();
+        renderDetails();
+        showToast('图片已删除');
+      }
+    }
+
+    // Long-press to delete image
+    let longPressTimer = null;
+    let longPressTriggered = false;
+
+    function startLongPress(recordId, index) {
+      longPressTriggered = false;
+      longPressTimer = setTimeout(function() {
+        longPressTriggered = true;
+        if (confirm('确定删除这张图片吗？')) {
+          deleteImage(recordId, index);
+        }
+      }, 600);
+    }
+
+    function cancelLongPress() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+
+    function viewImage(recordId, index) {
+      if (longPressTriggered) {
+        longPressTriggered = false;
+        return;
+      }
+      const record = records.find(r => r.id === recordId);
+      if (!record || !record.images || !record.images[index]) return;
+      const overlay = document.createElement('div');
+      overlay.className = 'img-viewer-overlay';
+      overlay.innerHTML = `
+        <img src="${record.images[index]}" onclick="this.closest('.img-viewer-overlay').remove()">
+        <button class="img-viewer-close" onclick="this.closest('.img-viewer-overlay').remove()">关闭</button>
+      `;
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.remove();
+      });
+      document.body.appendChild(overlay);
+    }
+
     // ==================== Delete ====================
     function confirmDelete(id) {
       const record = records.find(r => r.id === id);
@@ -2214,7 +2676,7 @@
       overlay.className = 'modal-overlay';
       overlay.innerHTML = `
         <div class="modal">
-          <p>确认删除「${escapeHtml(record.note)}」${record.type === 'income' ? '收入' : '支出'} ${formatCurrency(record.amount)}？</p>
+          <p>确认删除「${escapeHtml(record.note)}」${record.type === 'income' ? '收入' : record.type === 'transfer' ? '转账' : '支出'} ${formatCurrency(record.amount)}？</p>
           <div class="modal-buttons">
             <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
             <button class="modal-btn confirm" onclick="deleteRecord(${id}, this)">删除</button>
@@ -2228,6 +2690,32 @@
     }
 
     function deleteRecord(id, btn) {
+      const record = records.find(r => r.id === id);
+      if (record) {
+        if (record.type === 'transfer') {
+          // Reverse transfer: add back to source, remove from destination
+          const fromAsset = assets.find(a => a.name === record.account);
+          const toAsset = assets.find(a => a.name === record.toAccount);
+          if (fromAsset) fromAsset.amount += record.amount;
+          if (toAsset) toAsset.amount -= record.amount;
+          saveAssets();
+        } else {
+          // Reverse asset update for income/expense
+          let matchedAsset = null;
+          assets.forEach(a => {
+            if (a.name === record.account || (record.account === 'bank' && a.type === 'bank') ||
+                (record.account === 'wechat' && a.type === 'wechat') || (record.account === 'alipay' && a.type === 'alipay') ||
+                (record.account === 'cash' && a.type === 'cash')) {
+              matchedAsset = a;
+            }
+          });
+          if (matchedAsset) {
+            if (record.type === 'income') matchedAsset.amount -= record.amount;
+            else matchedAsset.amount += record.amount;
+            saveAssets();
+          }
+        }
+      }
       records = records.filter(r => r.id !== id);
       saveRecords();
       btn.closest('.modal-overlay').remove();
@@ -2278,7 +2766,7 @@
         records.forEach(r => {
           if (r.date === dateStr) {
             if (r.type === 'income') income += r.amount;
-            else expense += r.amount;
+            else if (r.type === 'expense') expense += r.amount;
           }
         });
         incomeData.push(income);
@@ -2425,19 +2913,88 @@
       }
 
       list.innerHTML = assets.map(a => `
-        <div class="asset-item">
+        <div class="asset-item" onclick="showAssetRecords(${a.id})" style="cursor:pointer">
           <div class="asset-icon-box">${getAssetTypeIcon(a.type)}</div>
           <div class="asset-info">
             <div class="asset-name">${escapeHtml(a.name)}</div>
             <div class="asset-meta">${getAssetTypeLabel(a.type)}</div>
+            <div class="asset-actions">
+              <button class="icon-btn" onclick="event.stopPropagation(); openAssetModal(${a.id})">编辑</button>
+              <button class="icon-btn danger" onclick="event.stopPropagation(); confirmDeleteAsset(${a.id})">删除</button>
+            </div>
           </div>
           <div class="asset-amount${a.amount < 0 ? ' negative' : ''}">${formatCurrency(a.amount)}</div>
-          <div class="asset-actions">
-            <button class="icon-btn" onclick="openAssetModal(${a.id})">编辑</button>
-            <button class="icon-btn danger" onclick="confirmDeleteAsset(${a.id})">删除</button>
-          </div>
         </div>
       `).join('');
+    }
+
+    function showAssetRecords(assetId) {
+      const asset = assets.find(a => a.id === assetId);
+      if (!asset) return;
+
+      document.getElementById('asset-records-title').textContent = asset.name;
+      document.getElementById('asset-records-balance-label').textContent = '当前余额';
+      const balEl = document.getElementById('asset-records-balance');
+      balEl.textContent = formatCurrency(asset.amount);
+      balEl.style.color = asset.amount < 0 ? 'var(--expense)' : 'var(--yellow)';
+
+      // Find all records linked to this asset (including transfers)
+      const linked = records.filter(r => {
+        if (r.type === 'transfer') {
+          return r.account === asset.name || r.toAccount === asset.name ||
+                 (r.account === 'bank' && asset.type === 'bank') ||
+                 (r.toAccount === 'bank' && asset.type === 'bank');
+        }
+        return r.account === asset.name ||
+               (r.account === 'bank' && asset.type === 'bank') ||
+               (r.account === 'wechat' && asset.type === 'wechat') ||
+               (r.account === 'alipay' && asset.type === 'alipay') ||
+               (r.account === 'cash' && asset.type === 'cash');
+      });
+
+      const container = document.getElementById('asset-records-content');
+
+      if (linked.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <p>暂无交易记录</p>
+            <p style="margin-top:8px;font-size:14px">使用此资产的收支会显示在这里</p>
+          </div>
+        `;
+        showView('asset-records-view');
+        return;
+      }
+
+      const sorted = [...linked].sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
+
+      let html = '';
+      sorted.forEach(r => {
+        let icon, iconClass, amountPrefix, amountClass;
+        if (r.type === 'transfer') {
+          icon = '⇄';
+          iconClass = 'transfer';
+          amountPrefix = '';
+          amountClass = 'transfer';
+        } else {
+          icon = r.type === 'income' ? '↑' : '↓';
+          iconClass = r.type;
+          amountPrefix = r.type === 'income' ? '+' : '-';
+          amountClass = r.type;
+        }
+        html += `
+          <div class="record-item">
+            <div class="record-icon ${iconClass}">${icon}</div>
+            <div class="record-info">
+              <div class="record-note">${escapeHtml(r.note)}</div>
+              <div class="record-meta">${r.date}</div>
+            </div>
+            <div class="record-amount ${amountClass}">${amountPrefix}${formatCurrency(r.amount)}</div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      showView('asset-records-view');
     }
 
     function openAssetModal(id) {
@@ -2626,6 +3183,20 @@
       toAsset.amount += amount;
       saveAssets();
 
+      // Create a transfer record (not counted in income/expense totals)
+      const transferRecord = {
+        id: Date.now(),
+        type: 'transfer',
+        amount: amount,
+        note: `转账：${fromAsset.name} → ${toAsset.name}`,
+        account: fromAsset.name,
+        toAccount: toAsset.name,
+        date: formatDateStr(new Date()),
+        comments: []
+      };
+      records.unshift(transferRecord);
+      saveRecords();
+
       btn.closest('.modal-overlay').remove();
       renderAssets();
 
@@ -2664,50 +3235,6 @@
 
     // ==================== Init ====================
     updateMainView();
-
-    // ==================== PWA Service Worker ====================
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./service-worker.js').then(function(reg) {
-          reg.addEventListener('updatefound', function() {
-            const newWorker = reg.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', function() {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  showPWAUpdatePrompt(reg);
-                }
-              });
-            }
-          });
-        }).catch(function(err) {
-          console.log('ServiceWorker registration failed: ', err);
-        });
-      });
-    }
-
-    function showPWAUpdatePrompt(reg) {
-      const overlay = document.createElement('div');
-      overlay.className = 'modal-overlay';
-      overlay.innerHTML = `
-        <div class="modal">
-          <p style="font-size:18px;margin-bottom:8px">发现新版本</p>
-          <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">重新加载页面即可使用最新版本</p>
-          <div class="modal-buttons">
-            <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">稍后</button>
-            <button class="modal-btn save" onclick="reloadPWA()">立即更新</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-      window._pendingSWReg = reg;
-    }
-
-    function reloadPWA() {
-      if (window._pendingSWReg && window._pendingSWReg.waiting) {
-        window._pendingSWReg.waiting.postMessage('SKIP_WAITING');
-      }
-      window.location.reload();
-    }
   </script>
 </body>
 </html>
