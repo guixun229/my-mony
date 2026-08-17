@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     @font-face {
       font-family: 'Zpix';
@@ -1778,12 +1779,12 @@
       overlay.innerHTML = `
         <div class="modal">
           <p style="font-family:var(--font-pixel);font-size:12px;margin-bottom:12px">数据导入</p>
-          <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">选择之前导出的 JSON 文件，导入后将覆盖当前数据</p>
+          <p style="font-size:14px;color:var(--text-light);margin-bottom:16px">选择之前导出的 JSON 或 XLS 文件，导入后将覆盖当前数据</p>
           <div class="modal-buttons">
             <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">取消</button>
             <button class="modal-btn save" onclick="document.getElementById('import-file-input').click()">选择文件</button>
           </div>
-          <input type="file" id="import-file-input" accept=".json" style="display:none">
+          <input type="file" id="import-file-input" accept=".json,.xls,.xlsx" style="display:none">
         </div>
       `;
       document.body.appendChild(overlay);
@@ -1794,26 +1795,124 @@
       document.getElementById('import-file-input').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-          try {
-            const data = JSON.parse(ev.target.result);
-            if (data.records) records = data.records;
-            if (data.assets) assets = data.assets;
-            if (data.salaryHistory) salaryHistory = data.salaryHistory;
-            if (data.salaryLastDate !== undefined) salaryLastDate = data.salaryLastDate;
-            saveRecords();
-            saveAssets();
-            saveSalaryData();
-            localStorage.setItem('facai_salary_last_date', salaryLastDate);
-            overlay.remove();
-            updateMainView();
-            showToast('数据导入成功 ✓');
-          } catch(err) {
-            showToast('文件格式错误');
-          }
-        };
-        reader.readAsText(file);
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith('.json')) {
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            try {
+              const data = JSON.parse(ev.target.result);
+              if (data.records) records = data.records;
+              if (data.assets) assets = data.assets;
+              if (data.salaryHistory) salaryHistory = data.salaryHistory;
+              if (data.salaryLastDate !== undefined) salaryLastDate = data.salaryLastDate;
+              saveRecords();
+              saveAssets();
+              saveSalaryData();
+              localStorage.setItem('facai_salary_last_date', salaryLastDate);
+              overlay.remove();
+              updateMainView();
+              showToast('数据导入成功 ✓');
+            } catch(err) {
+              showToast('文件格式错误');
+            }
+          };
+          reader.readAsText(file);
+        } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            try {
+              const data = new Uint8Array(ev.target.result);
+              const workbook = XLSX.read(data, { type: 'array' });
+              let importedRecords = [];
+              let importedAssets = [];
+              let importedSalary = [];
+              let recordId = 1;
+              let assetId = 1;
+
+              workbook.SheetNames.forEach(function(sheetName) {
+                const sheet = workbook.Sheets[sheetName];
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                if (rows.length < 2) return;
+
+                const headers = rows[0].map(function(h) { return String(h).trim(); });
+                const isRecordSheet = headers.indexOf('日期') >= 0 && headers.indexOf('类型') >= 0;
+                const isAssetSheet = headers.indexOf('名称') >= 0 && headers.indexOf('类型') >= 0;
+                const isSalarySheet = headers.indexOf('日期') >= 0 && headers.indexOf('金额') >= 0 && headers.indexOf('账号') >= 0 && headers.indexOf('类型') < 0;
+
+                if (isRecordSheet) {
+                  for (var i = 1; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (!row[0]) continue;
+                    var typeStr = String(row[1] || '').trim();
+                    var type = typeStr === '收入' ? 'income' : typeStr === '转账' ? 'transfer' : 'expense';
+                    var accountStr = String(row[4] || '').trim();
+                    var account = 'bank';
+                    if (accountStr === '微信') account = 'wechat';
+                    else if (accountStr === '支付宝') account = 'alipay';
+                    else if (accountStr && accountStr !== '银行卡') account = accountStr;
+                    importedRecords.push({
+                      id: recordId++,
+                      date: String(row[0] || ''),
+                      type: type,
+                      amount: parseFloat(row[2]) || 0,
+                      note: String(row[3] || ''),
+                      account: account
+                    });
+                  }
+                } else if (isAssetSheet) {
+                  for (var i = 1; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (!row[0]) continue;
+                    var nameStr = String(row[0] || '').trim();
+                    if (nameStr === '总计') continue;
+                    var typeStr = String(row[1] || '').trim();
+                    var assetType = 'bank';
+                    if (typeStr === '微信') assetType = 'wechat';
+                    else if (typeStr === '支付宝') assetType = 'alipay';
+                    importedAssets.push({
+                      id: assetId++,
+                      name: nameStr,
+                      type: assetType,
+                      amount: parseFloat(row[2]) || 0
+                    });
+                  }
+                } else if (isSalarySheet) {
+                  for (var i = 1; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (!row[0]) continue;
+                    var accountStr = String(row[2] || '').trim();
+                    var sAccount = 'bank';
+                    if (accountStr === '微信') sAccount = 'wechat';
+                    else if (accountStr === '支付宝') sAccount = 'alipay';
+                    else if (accountStr && accountStr !== '银行卡') sAccount = accountStr;
+                    importedSalary.push({
+                      date: String(row[0] || ''),
+                      amount: parseFloat(row[1]) || 0,
+                      account: sAccount
+                    });
+                  }
+                }
+              });
+
+              if (importedRecords.length > 0) records = importedRecords;
+              if (importedAssets.length > 0) assets = importedAssets;
+              if (importedSalary.length > 0) salaryHistory = importedSalary;
+              saveRecords();
+              saveAssets();
+              saveSalaryData();
+              localStorage.setItem('facai_salary_last_date', salaryLastDate);
+              overlay.remove();
+              updateMainView();
+              showToast('数据导入成功 ✓');
+            } catch(err) {
+              showToast('XLS文件格式错误');
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        } else {
+          showToast('请选择 JSON 或 XLS 文件');
+        }
       });
     }
 
@@ -1833,8 +1932,11 @@
       a.download = '发财_数据备份_' + formatDateStr(new Date()) + '.json';
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      showToast('JSON备份已导出');
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 200);
     }
 
     // ==================== Add Record ====================
