@@ -1,6 +1,6 @@
 {
   "name": "facai-app",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "发财 - 像素风格记账应用",
   "scripts": {
     "build": "echo 'Static web app, no build needed'",
